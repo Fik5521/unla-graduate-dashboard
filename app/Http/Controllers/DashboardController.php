@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
+    /**
+     * Menampilkan Halaman Dashboard Utama
+     */
     public function index(Request $request)
     {
         $filterFakultas = $request->fakultas;
@@ -30,7 +33,6 @@ class DashboardController extends Controller
         $rataStudi = round((clone $query)->avg('lama_studi'), 2) ?? 0;
 
         // --- 2. LOGIKA TREN (Perbandingan Tahun Terpilih vs Tahun Sebelumnya) ---
-        // Kita buat query khusus untuk membandingkan YoY (Year on Year)
         $qCurrent = Lulusan::where('tahun_lulus', $filterTahun);
         $qPrev = Lulusan::where('tahun_lulus', $prevYear);
 
@@ -50,23 +52,19 @@ class DashboardController extends Controller
         $persenTepatPrev = ($totalPrev > 0) ? ($qPrev->where('lama_studi', '<=', 8)->count() / $totalPrev) * 100 : 0;
         $trendTepat = $persenTepatCur - $persenTepatPrev;
 
-        // --- 3. DATA LAINNYA (Slider, Chart, dll tetap sama) ---
+        // --- 3. DATA LAINNYA ---
         $listFakultas = Lulusan::select('fakultas')->distinct()->pluck('fakultas');
         $listTahun = Lulusan::select('tahun_lulus')->distinct()->orderBy('tahun_lulus', 'desc')->pluck('tahun_lulus');
+        
         $tren = Lulusan::select('tahun_lulus', DB::raw('count(*) as total'))
-            ->where('tahun_lulus', '>=', 2016) // TAMBAHKAN INI
+            ->where('tahun_lulus', '>=', 2016)
             ->groupBy('tahun_lulus')
             ->orderBy('tahun_lulus')
             ->get();
-        $dataFakultas = Lulusan::select('fakultas', DB::raw('round((count(CASE WHEN lama_studi <= 8 THEN 1 END) / count(*)) * 100) as persentase'))->groupBy('fakultas')->get();
 
-        $topPerFakultas = [];
-        foreach ($listFakultas as $fak) {
-            $best = Lulusan::where('fakultas', $fak)->orderBy('ipk', 'desc')->first();
-            if ($best) {
-                $topPerFakultas[] = ['fakultas' => $fak, 'nama' => $best->nama, 'prodi' => $best->prodi, 'ipk' => number_format($best->ipk, 2)];
-            }
-        }
+        $dataFakultas = Lulusan::select('fakultas', DB::raw('round((count(CASE WHEN lama_studi <= 8 THEN 1 END) / count(*)) * 100) as persentase'))
+            ->groupBy('fakultas')
+            ->get();
 
         $queryTop = Lulusan::query();
         if ($request->fakultas) {
@@ -89,41 +87,77 @@ class DashboardController extends Controller
             });
 
         return view('dashboard', compact(
-            'total',
-            'tepat',
-            'rataStudi',
-            'tren',
-            'dataFakultas',
-            'listFakultas',
-            'listTahun',
-            'topCumlaude',
-            'trendTotal',
-            'trendTepat'
+            'total', 'tepat', 'rataStudi', 'tren', 'dataFakultas', 
+            'listFakultas', 'listTahun', 'topCumlaude', 'trendTotal', 'trendTepat'
         ));
     }
 
+    /**
+     * Menampilkan Halaman List Mahasiswa dengan Dependent Dropdown Filter
+     */
     public function mahasiswa(Request $request)
     {
         $search = $request->search;
+        $filterFakultas = $request->fakultas;
+        $filterProdi = $request->prodi;
+        $filterTahun = $request->tahun;
 
-        // Ambil data dengan pencarian NIM atau Nama, lalu bagi 15 data per halaman
-        $mahasiswas = Lulusan::when($search, function ($query) use ($search) {
-            $query->where('nama', 'like', "%{$search}%")
-                ->orWhere('nim', 'like', "%{$search}%");
-        })->paginate(15);
+        $query = Lulusan::query();
 
-        return view('mahasiswa', compact('mahasiswas'));
+        // 1. Logika Pencarian Nama atau NIM
+        $query->when($search, function ($q) use ($search) {
+            $q->where(function($inner) use ($search) {
+                $inner->where('nama', 'like', "%{$search}%")
+                      ->orWhere('nim', 'like', "%{$search}%");
+            });
+        });
+
+        // 2. Filter Berdasarkan Fakultas
+        $query->when($filterFakultas, function ($q) use ($filterFakultas) {
+            $q->where('fakultas', $filterFakultas);
+        });
+
+        // 3. Filter Berdasarkan Program Studi
+        $query->when($filterProdi, function ($q) use ($filterProdi) {
+            $q->where('prodi', $filterProdi);
+        });
+
+        // 4. Filter Berdasarkan Tahun Lulus
+        $query->when($filterTahun, function ($q) use ($filterTahun) {
+            $q->where('tahun_lulus', $filterTahun);
+        });
+
+        // Eksekusi data dengan paginasi dan mempertahankan query string di URL
+        $mahasiswas = $query->orderBy('tahun_lulus', 'desc')
+                            ->orderBy('nama', 'asc')
+                            ->paginate(15)
+                            ->appends($request->all());
+
+        // Menyiapkan data untuk Dropdown Filter
+        $listFakultas = Lulusan::select('fakultas')->distinct()->orderBy('fakultas')->pluck('fakultas');
+        $listTahun = Lulusan::select('tahun_lulus')->distinct()->orderBy('tahun_lulus', 'desc')->pluck('tahun_lulus');
+        
+        // Mengelompokkan Prodi berdasarkan Fakultas untuk keperluan Dependent Dropdown di View
+        $prodiPerFakultas = Lulusan::select('fakultas', 'prodi')
+                            ->distinct()
+                            ->orderBy('prodi')
+                            ->get()
+                            ->groupBy('fakultas');
+
+        return view('mahasiswa', compact('mahasiswas', 'listFakultas', 'listTahun', 'prodiPerFakultas'));
     }
+
+    /**
+     * API untuk Slider Top Cumlaude di Dashboard (Rotasi Otomatis)
+     */
     public function getTopCumlaude(Request $request)
     {
-        // Ambil semua daftar fakultas yang ada di UNLA
         $allFakultas = Lulusan::select('fakultas')->distinct()->pluck('fakultas')->toArray();
+        if (empty($allFakultas)) return response()->json(['data' => []]);
 
-        // Ambil index fakultas yang sedang diminta (dikirim dari JS)
         $currentIndex = $request->get('index', 0) % count($allFakultas);
         $targetFakultas = $allFakultas[$currentIndex];
 
-        // Ambil Top 5 untuk fakultas spesifik tersebut
         $top = Lulusan::where('fakultas', $targetFakultas)
             ->orderBy('ipk', 'desc')
             ->take(5)
@@ -135,26 +169,24 @@ class DashboardController extends Controller
         ]);
     }
 
+    /**
+     * Fitur Export ke PDF
+     */
     public function exportPdf(Request $request)
     {
         try {
-            // Tingkatkan kekuatan server sementara
             ini_set('memory_limit', '1024M');
             set_time_limit(600);
 
             $query = Lulusan::query();
-            if ($request->fakultas) {
-                $query->where('fakultas', $request->fakultas);
-            }
-            if ($request->tahun) {
-                $query->where('tahun_lulus', $request->tahun);
-            }
+            if ($request->fakultas) $query->where('fakultas', $request->fakultas);
+            if ($request->tahun) $query->where('tahun_lulus', $request->tahun);
 
-            // COBA LIMIT 100 DATA DULU untuk testing
+            // Limit data untuk mencegah overload memori saat render PDF
             $data = $query->orderBy('nama', 'asc')->limit(100)->get();
 
             if ($data->isEmpty()) {
-                return "Data kosong, tidak ada yang bisa di-export.";
+                return "Data tidak ditemukan untuk kriteria filter tersebut.";
             }
 
             $metadata = [
@@ -164,13 +196,11 @@ class DashboardController extends Controller
                 'tanggal' => now()->format('d F Y')
             ];
 
-            // Pakai full path class untuk menghindari 'Class not found'
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('exports.lulusan_pdf', compact('data', 'metadata'));
-
             return $pdf->setPaper('a4', 'portrait')->download('Laporan_Lulusan_UNLA.pdf');
+
         } catch (\Exception $e) {
-            // Jika error, tampilkan pesan errornya di layar daripada Error 500
-            return "Gagal Export: " . $e->getMessage();
+            return "Terjadi Kesalahan saat Export: " . $e->getMessage();
         }
     }
 }
