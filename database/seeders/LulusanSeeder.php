@@ -83,7 +83,7 @@ class LulusanSeeder extends Seeder
 
         // 6. FKIP
         if (
-            str_contains($prodi, 'pgsd') || str_contains($prodi, 'matematika') ||
+            str_contains($prodi, 'pgsd') || str_contains($prodi, 'sekolah dasar') || str_contains($prodi, 'matematika') ||
             str_contains($prodi, 'pendidikan ekonomi')
         ) {
             return 'FKIP';
