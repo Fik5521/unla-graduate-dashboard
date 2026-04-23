@@ -9,9 +9,6 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
-    /**
-     * Menampilkan Halaman Dashboard Utama
-     */
     public function index(Request $request)
     {
         $filterFakultas = $request->fakultas;
@@ -55,11 +52,16 @@ class DashboardController extends Controller
         // --- 3. DATA LAINNYA ---
         $listFakultas = Lulusan::select('fakultas')->distinct()->pluck('fakultas');
         $listTahun = Lulusan::select('tahun_lulus')->distinct()->orderBy('tahun_lulus', 'desc')->pluck('tahun_lulus');
-        
-        $tren = Lulusan::select('tahun_lulus', DB::raw('count(*) as total'))
-            ->where('tahun_lulus', '>=', 2016)
+
+        $tren = Lulusan::select(
+            'tahun_lulus',
+            DB::raw('count(*) as total'),
+            DB::raw('avg(ipk) as avg_ipk'),
+            DB::raw('avg(lama_studi) as avg_lama_studi')
+        )
+            ->where('tahun_lulus', '>=', 2016) // <--- Ubah bagian ini jadi 2016
             ->groupBy('tahun_lulus')
-            ->orderBy('tahun_lulus')
+            ->orderBy('tahun_lulus', 'asc')
             ->get();
 
         $dataFakultas = Lulusan::select('fakultas', DB::raw('round((count(CASE WHEN lama_studi <= 8 THEN 1 END) / count(*)) * 100) as persentase'))
@@ -86,10 +88,7 @@ class DashboardController extends Controller
                 ];
             });
 
-        return view('dashboard', compact(
-            'total', 'tepat', 'rataStudi', 'tren', 'dataFakultas', 
-            'listFakultas', 'listTahun', 'topCumlaude', 'trendTotal', 'trendTepat'
-        ));
+        return view('dashboard', compact('tren', 'total', 'tepat', 'rataStudi', 'listFakultas', 'listTahun', 'dataFakultas', 'topCumlaude', 'trendTotal', 'trendTepat'));
     }
 
     /**
@@ -106,9 +105,9 @@ class DashboardController extends Controller
 
         // 1. Logika Pencarian Nama atau NIM
         $query->when($search, function ($q) use ($search) {
-            $q->where(function($inner) use ($search) {
+            $q->where(function ($inner) use ($search) {
                 $inner->where('nama', 'like', "%{$search}%")
-                      ->orWhere('nim', 'like', "%{$search}%");
+                    ->orWhere('nim', 'like', "%{$search}%");
             });
         });
 
@@ -129,20 +128,20 @@ class DashboardController extends Controller
 
         // Eksekusi data dengan paginasi dan mempertahankan query string di URL
         $mahasiswas = $query->orderBy('tahun_lulus', 'desc')
-                            ->orderBy('nama', 'asc')
-                            ->paginate(15)
-                            ->appends($request->all());
+            ->orderBy('nama', 'asc')
+            ->paginate(15)
+            ->appends($request->all());
 
         // Menyiapkan data untuk Dropdown Filter
         $listFakultas = Lulusan::select('fakultas')->distinct()->orderBy('fakultas')->pluck('fakultas');
         $listTahun = Lulusan::select('tahun_lulus')->distinct()->orderBy('tahun_lulus', 'desc')->pluck('tahun_lulus');
-        
+
         // Mengelompokkan Prodi berdasarkan Fakultas untuk keperluan Dependent Dropdown di View
         $prodiPerFakultas = Lulusan::select('fakultas', 'prodi')
-                            ->distinct()
-                            ->orderBy('prodi')
-                            ->get()
-                            ->groupBy('fakultas');
+            ->distinct()
+            ->orderBy('prodi')
+            ->get()
+            ->groupBy('fakultas');
 
         return view('mahasiswa', compact('mahasiswas', 'listFakultas', 'listTahun', 'prodiPerFakultas'));
     }
@@ -198,9 +197,65 @@ class DashboardController extends Controller
 
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('exports.lulusan_pdf', compact('data', 'metadata'));
             return $pdf->setPaper('a4', 'portrait')->download('Laporan_Lulusan_UNLA.pdf');
-
         } catch (\Exception $e) {
             return "Terjadi Kesalahan saat Export: " . $e->getMessage();
         }
+    }
+    public function analisisProdi(Request $request)
+    {
+        $prodiSelected = $request->prodi ?? 'Informatika';
+        $tahunSelected = $request->tahun;
+
+        // Base Query
+        $query = Lulusan::where('prodi', $prodiSelected);
+
+        // Tambahkan filter tahun jika dipilih
+        if ($tahunSelected) {
+            $query->where('tahun_lulus', $tahunSelected);
+        }
+
+        // 1. Statistik
+        $stats = [
+            'total' => (clone $query)->count(),
+            'avg_ipk' => (clone $query)->avg('ipk') ?? 0,
+            'avg_lama_studi' => (clone $query)->avg('lama_studi') ?? 0,
+            'tepat_waktu' => (clone $query)->where('lama_studi', '<=', 8)->count(),
+        ];
+
+        // 2. List untuk Dropdown
+        $listProdi = Lulusan::select('prodi')->distinct()->orderBy('prodi', 'asc')->pluck('prodi');
+        $listTahun = Lulusan::select('tahun_lulus')
+            ->where('tahun_lulus', '>', 2000)
+            ->distinct()
+            ->orderBy('tahun_lulus', 'desc')
+            ->pluck('tahun_lulus');
+
+        // 3. Tren (Tetap ambil per prodi tanpa filter tahun agar grafiknya tetap panjang)
+        // Di dalam DashboardController.php bagian analisisProdi
+        $tren = Lulusan::select(
+            'tahun_lulus',
+            DB::raw('count(*) as total'),
+            DB::raw('avg(ipk) as avg_ipk'),
+            DB::raw('avg(lama_studi) as avg_lama_studi')
+        )
+            ->where('prodi', $prodiSelected)
+            ->where('tahun_lulus', '>', 2000)
+            ->groupBy('tahun_lulus')
+            ->orderBy('tahun_lulus', 'asc')
+            ->get();
+
+        // 4. Distribusi IPK (Ikut filter tahun)
+        $ipkDist = [
+            'cumlaude' => (clone $query)->where('ipk', '>=', 3.5)->count(),
+            'sangat_memuaskan' => (clone $query)->where('ipk', '>=', 3.0)->where('ipk', '<', 3.5)->count(),
+            'memuaskan' => (clone $query)->where('ipk', '<', 3.0)->count(),
+        ];
+        $topLulusan = (clone $query)
+            ->orderBy('ipk', 'desc')
+            ->orderBy('lama_studi', 'asc') // Jika IPK sama, yang lebih cepat lulus di atas
+            ->take(5)
+            ->get();
+
+        return view('analisis_prodi', compact('stats', 'tren', 'ipkDist', 'listProdi', 'listTahun', 'prodiSelected', 'topLulusan'));
     }
 }

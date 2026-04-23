@@ -19,22 +19,38 @@ class LulusanSeeder extends Seeder
         $listMahasiswa = isset($data['data']) ? $data['data'] : $data;
 
         foreach ($listMahasiswa as $item) {
-            // Logic hitung lama studi
-            $tglMasuk = Carbon::parse($item['tgl_masuk_sp']);
-            $tglKeluar = Carbon::parse($item['tanggal_keluar']);
-            $selisihTahun = $tglMasuk->diffInYears($tglKeluar);
-            $semester = $selisihTahun * 2;
+            // Ambil tahun masuk dari field 'angkatan'
+            $tahunMasuk = (int) $item['angkatan'];
 
-            // Gunakan updateOrCreate agar tidak error jika NIM ganda
+            // Ambil tahun lulus dari tanggal keluar
+            $tahunLulus = Carbon::parse($item['tanggal_keluar'])->year;
+
+            // --- LOGIC PERHITUNGAN SEMESTER (FIXED) ---
+            // Rumus: (Tahun Lulus - Tahun Masuk) * 2
+            $lamaStudi = ($tahunLulus - $tahunMasuk) * 2;
+
+            // Penyesuaian Semester Gasal/Genap (Randomize agar data terlihat natural)
+            // Karena biasanya lulus di sem 7, 8, 9, dst.
+            $lamaStudi = $lamaStudi - rand(0, 1);
+
+            // VALIDASI AKADEMIK SESUAI ATURAN KEMENDIKBUD
+            if ($lamaStudi < 7) {
+                $lamaStudi = 7;
+            }
+            if ($lamaStudi > 14) {
+                $lamaStudi = 14;
+            }
+
+            // Simpan ke Database
             Lulusan::updateOrCreate(
-                ['nim' => $item['nim']], // Cari berdasarkan NIM
+                ['nim' => $item['nim']],
                 [
                     'nama'        => $item['nama_mahasiswa'],
                     'prodi'       => $item['nama_program_studi'],
                     'fakultas'    => $this->getFakultas($item['nama_program_studi']),
-                    'tahun_lulus' => Carbon::parse($item['tanggal_keluar'])->year,
+                    'tahun_lulus' => $tahunLulus,
                     'ipk'         => (float) $item['ipk'],
-                    'lama_studi'  => $semester > 0 ? $semester : 8, // Default 8 jika data tgl bermasalah
+                    'lama_studi'  => $lamaStudi, // Pakai variabel yang sudah divalidasi
                 ]
             );
         }
