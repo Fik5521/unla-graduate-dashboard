@@ -16,23 +16,42 @@
         <ul class="space-y-2">
             <li>
                 <a href="{{ route('dashboard') }}" class="flex items-center gap-3 p-3 {{ request()->routeIs('dashboard') ? 'bg-blue-50 font-bold text-black border-l-4 border-black' : 'text-black' }} rounded-lg text-[11px] uppercase tracking-wider transition-all">
-                    <img src="{{ asset('home.png') }}" class="w-4 h-4 object-contain brightness-0" alt="Dashboard">
+                    <img src="{{ asset('home.png') }}" class="w-4 h-4 object-contain brightness-0" alt="">
                     Dashboard
                 </a>
             </li>
+
+            @auth
             <li>
                 <a href="{{ route('mahasiswa.index') }}" class="flex items-center gap-3 p-3 {{ request()->routeIs('mahasiswa.index') ? 'bg-blue-50 font-bold text-black border-l-4 border-black' : 'text-black' }} rounded-lg text-[11px] uppercase tracking-wider transition-all">
-                    <img src="{{ asset('users-alt.png') }}" class="w-4 h-4 object-contain brightness-0" alt="Dashboard">
+                    <img src="{{ asset('users-alt.png') }}" class="w-4 h-4 object-contain brightness-0" alt="">
                     Data Mahasiswa
                 </a>
             </li>
 
             <li>
                 <a href="{{ route('analisis.prodi') }}" class="flex items-center gap-3 p-3 {{ request()->routeIs('analisis.prodi') ? 'bg-blue-50 font-bold text-black border-l-4 border-black' : 'text-black' }} rounded-lg text-[11px] uppercase tracking-wider transition-all">
-                    <img src="{{ asset('chart-histogram.png') }}" class="w-4 h-4 object-contain brightness-0" alt="Analisis Prodi">
+                    <img src="{{ asset('chart-histogram.png') }}" class="w-4 h-4 object-contain brightness-0" alt="">
                     Analisis Prodi
                 </a>
             </li>
+
+            <li>
+                <a href="{{ route('perbandingan.prodi') }}" class="flex items-center gap-3 p-3 {{ request()->routeIs('perbandingan.prodi') ? 'bg-blue-50 font-bold text-black border-l-4 border-black' : 'text-black' }} rounded-lg text-[11px] uppercase tracking-wider transition-all">
+                    <img src="{{ asset('compare.png') }}" class="w-4 h-4 object-contain brightness-0" alt="">
+                    Perbandingan Prodi
+                </a>
+            </li>
+
+            <li class="pt-10">
+                <form action="{{ route('logout') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="w-full flex items-center gap-3 p-3 text-red-500 hover:bg-red-50 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-all">
+                        Logout
+                    </button>
+                </form>
+            </li>
+            @endauth
         </ul>
     </nav>
     <div class="p-4 border-t">

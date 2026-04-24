@@ -12,83 +12,81 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $filterFakultas = $request->fakultas;
-        $latestYearInDb = Lulusan::max('tahun_lulus');
-        $filterTahun = $request->tahun ?? $latestYearInDb;
-        $prevYear = $filterTahun - 1;
 
-        // --- 1. DATA UTAMA (Sesuai Filter) ---
+        // --- PERBAIKAN DI SINI: Filter tahun sampah saat ambil Min/Max ---
+        $minYearDb = Lulusan::where('tahun_lulus', '>', 2000)->min('tahun_lulus') ?? 2016;
+        $maxYearDb = Lulusan::where('tahun_lulus', '>', 2000)->max('tahun_lulus') ?? date('Y');
+
+        // Ambil input dari user atau gunakan default yang sudah bersih
+        $tahunMulai = $request->tahun_mulai ?? $minYearDb;
+        $tahunSelesai = $request->tahun_selesai ?? $maxYearDb;
+
+        // --- 1. DATA UTAMA (Card) ---
         $query = Lulusan::query();
+
+        // Pastikan query utama juga membuang tahun sampah agar kalkulasi IPK/Total akurat
+        $query->where('tahun_lulus', '>', 2000);
+
         if ($filterFakultas) {
             $query->where('fakultas', $filterFakultas);
         }
-        if ($request->tahun) {
-            $query->where('tahun_lulus', $filterTahun);
-        }
+
+        // Gunakan whereBetween untuk rentang tahun
+        $query->whereBetween('tahun_lulus', [$tahunMulai, $tahunSelesai]);
 
         $total = $query->count();
         $tepat = (clone $query)->where('lama_studi', '<=', 8)->count();
-        $rataStudi = round((clone $query)->avg('lama_studi'), 2) ?? 0;
+        $rataStudi = round((clone $query)->avg('lama_studi'), 1) ?? 0;
 
-        // --- 2. LOGIKA TREN (Perbandingan Tahun Terpilih vs Tahun Sebelumnya) ---
-        $qCurrent = Lulusan::where('tahun_lulus', $filterTahun);
-        $qPrev = Lulusan::where('tahun_lulus', $prevYear);
-
-        if ($filterFakultas) {
-            $qCurrent->where('fakultas', $filterFakultas);
-            $qPrev->where('fakultas', $filterFakultas);
-        }
-
-        $totalCur = $qCurrent->count();
-        $totalPrev = $qPrev->count();
-
-        // Persentase Kenaikan/Penurunan Total Lulusan
-        $trendTotal = ($totalPrev > 0) ? (($totalCur - $totalPrev) / $totalPrev) * 100 : 0;
-
-        // Persentase Ketepatan Waktu (Sekarang vs Lalu)
-        $persenTepatCur = ($totalCur > 0) ? ($qCurrent->where('lama_studi', '<=', 8)->count() / $totalCur) * 100 : 0;
-        $persenTepatPrev = ($totalPrev > 0) ? ($qPrev->where('lama_studi', '<=', 8)->count() / $totalPrev) * 100 : 0;
-        $trendTepat = $persenTepatCur - $persenTepatPrev;
-
-        // --- 3. DATA LAINNYA ---
-        $listFakultas = Lulusan::select('fakultas')->distinct()->pluck('fakultas');
-        $listTahun = Lulusan::select('tahun_lulus')->distinct()->orderBy('tahun_lulus', 'desc')->pluck('tahun_lulus');
-
+        // --- 2. DATA TREN (Grafik Line) ---
         $tren = Lulusan::select(
             'tahun_lulus',
             DB::raw('count(*) as total'),
-            DB::raw('avg(ipk) as avg_ipk'),
-            DB::raw('avg(lama_studi) as avg_lama_studi')
+            DB::raw('count(CASE WHEN lama_studi <= 8 THEN 1 END) as tepat_waktu'),
+            DB::raw('count(CASE WHEN lama_studi > 8 THEN 1 END) as terlambat')
         )
-            ->where('tahun_lulus', '>=', 2016) // <--- Ubah bagian ini jadi 2016
-            ->groupBy('tahun_lulus')
+            ->where('tahun_lulus', '>', 2000) // Buang tahun sampah
+            ->whereBetween('tahun_lulus', [$tahunMulai, $tahunSelesai]);
+
+        if ($filterFakultas) {
+            $tren->where('fakultas', $filterFakultas);
+        }
+
+        $tren = $tren->groupBy('tahun_lulus')
             ->orderBy('tahun_lulus', 'asc')
             ->get();
 
-        $dataFakultas = Lulusan::select('fakultas', DB::raw('round((count(CASE WHEN lama_studi <= 8 THEN 1 END) / count(*)) * 100) as persentase'))
+        // Data dropdown
+        $listFakultas = Lulusan::select('fakultas')->distinct()->pluck('fakultas');
+        $listTahun = Lulusan::select('tahun_lulus')
+            ->distinct()
+            ->where('tahun_lulus', '>', 2000)
+            ->orderBy('tahun_lulus', 'desc')
+            ->pluck('tahun_lulus');
+
+        // Data Statistik Fakultas
+        $dataFakultas = Lulusan::select(
+            'fakultas',
+            DB::raw('round((count(CASE WHEN lama_studi <= 8 THEN 1 END) / count(*)) * 100) as persentase')
+        )
+            ->where('tahun_lulus', '>', 2000) // Buang tahun sampah
             ->groupBy('fakultas')
             ->get();
 
-        $queryTop = Lulusan::query();
-        if ($request->fakultas) {
-            $queryTop->where('fakultas', $request->fakultas);
-        }
-        if ($request->tahun) {
-            $queryTop->where('tahun_lulus', $request->tahun);
-        }
+        $topCumlaude = (clone $query)->orderBy('ipk', 'desc')->take(5)->get();
 
-        $topCumlaude = $queryTop->orderBy('ipk', 'desc')
-            ->take(5)
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'nama' => $item->nama,
-                    'fakultas' => $item->fakultas,
-                    'prodi' => $item->prodi,
-                    'ipk' => number_format($item->ipk, 2)
-                ];
-            });
-
-        return view('dashboard', compact('tren', 'total', 'tepat', 'rataStudi', 'listFakultas', 'listTahun', 'dataFakultas', 'topCumlaude', 'trendTotal', 'trendTepat'));
+        return view('dashboard', compact(
+            'tren',
+            'total',
+            'tepat',
+            'rataStudi',
+            'listFakultas',
+            'listTahun',
+            'dataFakultas',
+            'topCumlaude',
+            'tahunMulai',
+            'tahunSelesai'
+        ));
     }
 
     /**
@@ -134,8 +132,11 @@ class DashboardController extends Controller
 
         // Menyiapkan data untuk Dropdown Filter
         $listFakultas = Lulusan::select('fakultas')->distinct()->orderBy('fakultas')->pluck('fakultas');
-        $listTahun = Lulusan::select('tahun_lulus')->distinct()->orderBy('tahun_lulus', 'desc')->pluck('tahun_lulus');
-
+        $listTahun = Lulusan::select('tahun_lulus')
+            ->distinct()
+            ->where('tahun_lulus', '>', 2000) // Memastikan hanya tahun 2000 ke atas yang muncul
+            ->orderBy('tahun_lulus', 'desc')
+            ->pluck('tahun_lulus');
         // Mengelompokkan Prodi berdasarkan Fakultas untuk keperluan Dependent Dropdown di View
         $prodiPerFakultas = Lulusan::select('fakultas', 'prodi')
             ->distinct()
@@ -203,59 +204,129 @@ class DashboardController extends Controller
     }
     public function analisisProdi(Request $request)
     {
-        $prodiSelected = $request->prodi ?? 'Informatika';
+        $fakultasSelected = $request->fakultas;
+        $prodiSelected = $request->prodi;
         $tahunSelected = $request->tahun;
 
-        // Base Query
-        $query = Lulusan::where('prodi', $prodiSelected);
+        // --- 1. Query Utama (Untuk Stats Card & Tabel) ---
+        $query = Lulusan::query();
+        if ($fakultasSelected) $query->where('fakultas', $fakultasSelected);
+        if ($prodiSelected) $query->where('prodi', $prodiSelected);
 
-        // Tambahkan filter tahun jika dipilih
-        if ($tahunSelected) {
-            $query->where('tahun_lulus', $tahunSelected);
-        }
+        // Simpan query dasar tanpa filter tahun untuk digunakan di Tren
+        $queryBaseForTren = clone $query;
 
-        // 1. Statistik
+        // Filter tahun hanya berlaku untuk angka di Card & Tabel
+        if ($tahunSelected) $query->where('tahun_lulus', $tahunSelected);
+
+        // --- 2. Statistik Card ---
         $stats = [
-            'total' => (clone $query)->count(),
-            'avg_ipk' => (clone $query)->avg('ipk') ?? 0,
-            'avg_lama_studi' => (clone $query)->avg('lama_studi') ?? 0,
-            'tepat_waktu' => (clone $query)->where('lama_studi', '<=', 8)->count(),
+            'total' => $query->count(),
+            'avg_ipk' => round($query->avg('ipk') ?? 0, 2),
+            'avg_lama_studi' => round($query->avg('lama_studi') ?? 0, 1),
+            'tepat_waktu' => $query->where('lama_studi', '<=', 8)->count(),
         ];
 
-        // 2. List untuk Dropdown
-        $listProdi = Lulusan::select('prodi')->distinct()->orderBy('prodi', 'asc')->pluck('prodi');
-        $listTahun = Lulusan::select('tahun_lulus')
-            ->where('tahun_lulus', '>', 2000)
-            ->distinct()
-            ->orderBy('tahun_lulus', 'desc')
-            ->pluck('tahun_lulus');
+        // --- 3. Perbaikan Query Tren (Grafik Line) ---
+        // Kita gunakan $queryBaseForTren supaya grafik tetap panjang walau tahun dipilih
+        // Ambil input range tahun
+        $mulai = $request->tahun_mulai ?? Lulusan::min('tahun_lulus');
+        $selesai = $request->tahun_selesai ?? Lulusan::max('tahun_lulus');
 
-        // 3. Tren (Tetap ambil per prodi tanpa filter tahun agar grafiknya tetap panjang)
-        // Di dalam DashboardController.php bagian analisisProdi
-        $tren = Lulusan::select(
-            'tahun_lulus',
-            DB::raw('count(*) as total'),
-            DB::raw('avg(ipk) as avg_ipk'),
-            DB::raw('avg(lama_studi) as avg_lama_studi')
-        )
-            ->where('prodi', $prodiSelected)
-            ->where('tahun_lulus', '>', 2000)
+        // Query Tren harus pakai whereBetween
+        $tren = Lulusan::query()
+            ->when($prodiSelected, fn($q) => $q->where('prodi', $prodiSelected))
+            ->whereBetween('tahun_lulus', [$mulai, $selesai]) // <-- Kunci sinkronisasi grafik
+            ->select(
+                'tahun_lulus',
+                DB::raw('count(*) as total'),
+                DB::raw('avg(ipk) as avg_ipk'),
+                DB::raw('avg(lama_studi) as avg_lama_studi')
+            )
             ->groupBy('tahun_lulus')
             ->orderBy('tahun_lulus', 'asc')
             ->get();
 
-        // 4. Distribusi IPK (Ikut filter tahun)
+        // --- 4. Data Filter & Pendukung ---
+        $listFakultas = Lulusan::select('fakultas')->distinct()->orderBy('fakultas')->pluck('fakultas');
+        $listTahun = Lulusan::select('tahun_lulus')
+            ->distinct()
+            ->where('tahun_lulus', '>', 2000) // Ini akan membuang tahun 202 dan 1970
+            ->orderBy('tahun_lulus', 'desc')
+            ->pluck('tahun_lulus');
+        $prodiPerFakultas = Lulusan::select('fakultas', 'prodi')->distinct()->orderBy('prodi')->get()->groupBy('fakultas');
+
         $ipkDist = [
             'cumlaude' => (clone $query)->where('ipk', '>=', 3.5)->count(),
             'sangat_memuaskan' => (clone $query)->where('ipk', '>=', 3.0)->where('ipk', '<', 3.5)->count(),
             'memuaskan' => (clone $query)->where('ipk', '<', 3.0)->count(),
         ];
-        $topLulusan = (clone $query)
-            ->orderBy('ipk', 'desc')
-            ->orderBy('lama_studi', 'asc') // Jika IPK sama, yang lebih cepat lulus di atas
-            ->take(5)
-            ->get();
 
-        return view('analisis_prodi', compact('stats', 'tren', 'ipkDist', 'listProdi', 'listTahun', 'prodiSelected', 'topLulusan'));
+        $topLulusan = (clone $query)->orderBy('ipk', 'desc')->take(5)->get();
+
+        return view('analisis_prodi', compact(
+            'stats',
+            'tren',
+            'ipkDist',
+            'listFakultas',
+            'listTahun',
+            'fakultasSelected',
+            'prodiSelected',
+            'tahunSelected',
+            'prodiPerFakultas',
+            'topLulusan'
+        ));
+    }
+
+    public function perbandinganProdi(Request $request)
+    {
+        // 1. Ambil input rentang tahun atau set default jika kosong
+        $minYear = Lulusan::min('tahun_lulus') ?? 2016;
+        $maxYear = Lulusan::max('tahun_lulus') ?? date('Y');
+
+        $tahunMulai = $request->tahun_mulai ?? $minYear;
+        $tahunSelesai = $request->tahun_selesai ?? $maxYear;
+
+        // 2. Default prodi untuk dibandingkan
+        $prodiA = $request->prodi_a ?? 'Informatika';
+        $prodiB = $request->prodi_b ?? 'Sistem Informasi';
+
+        // 3. Query Data Prodi A dengan FILTER RENTANG TAHUN
+        $dataA = Lulusan::select(
+            DB::raw('COUNT(*) as total'),
+            DB::raw('ROUND(AVG(ipk), 2) as ipk'),
+            DB::raw('ROUND(AVG(lama_studi), 1) as studi')
+        )
+            ->whereBetween('tahun_lulus', [$tahunMulai, $tahunSelesai]) // <--- KUNCI FILTER
+            ->where('prodi', $prodiA)
+            ->first();
+
+        // 4. Query Data Prodi B dengan FILTER RENTANG TAHUN
+        $dataB = Lulusan::select(
+            DB::raw('COUNT(*) as total'),
+            DB::raw('ROUND(AVG(ipk), 2) as ipk'),
+            DB::raw('ROUND(AVG(lama_studi), 1) as studi')
+        )
+            ->whereBetween('tahun_lulus', [$tahunMulai, $tahunSelesai]) // <--- KUNCI FILTER
+            ->where('prodi', $prodiB)
+            ->first();
+
+        // 5. Data untuk Dropdown
+        $listProdi = Lulusan::select('prodi')->distinct()->orderBy('prodi')->pluck('prodi');
+        $listTahun = Lulusan::select('tahun_lulus')
+            ->distinct()
+            ->where('tahun_lulus', '>', 2000) // Ini akan membuang tahun 202 dan 1970
+            ->orderBy('tahun_lulus', 'desc')
+            ->pluck('tahun_lulus');
+        return view('perbandingan_prodi', compact(
+            'dataA',
+            'dataB',
+            'prodiA',
+            'prodiB',
+            'listProdi',
+            'listTahun',
+            'tahunMulai',
+            'tahunSelesai'
+        ));
     }
 }
