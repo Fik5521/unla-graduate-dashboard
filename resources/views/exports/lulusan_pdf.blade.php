@@ -1,66 +1,51 @@
-<!DOCTYPE html>
-<html>
-
-<head>
-    <title>Laporan Lulusan UNLA</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            font-size: 12px;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        th,
-        td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            bg-color: #1e3a8a;
-            color: white;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="header">
-        <h2>DAFTAR LULUSAN UNIVERSITAS LANGLANGBUANA</h2>
-        <p>Fakultas: {{ $metadata['fakultas'] }} | Tahun: {{ $metadata['tahun'] }}</p>
-    </div>
-    <table>
-        <thead>
-            <tr>
-                <th>NIM</th>
-                <th>Nama</th>
-                <th>Prodi</th>
-                <th>IPK</th>
-                <th>Lama Studi</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($data as $d)
-            <tr>
-                <td>{{ $d->nim }}</td>
-                <td>{{ $d->nama }}</td>
-                <td>{{ $d->prodi }}</td>
-                <td>{{ number_format($d->ipk, 2) }}</td>
-                <td>{{ $d->lama_studi }} Sem</td>
-            </tr>
-            @endforeach
-        </tbody>
+<div class="meta-box">
+    <table style="width: 100%; font-size: 11px;">
+        <tr>
+            <td style="font-weight: bold; width: 100px;">Fakultas</td>
+            <td>: {{ $metadata['fakultas'] }}</td>
+            <td style="font-weight: bold; width: 100px;">Dicetak Pada</td>
+            <td>: {{ $metadata['tanggal'] }}</td>
+        </tr>
+        <tr>
+            <td style="font-weight: bold;">Prodi</td>
+            <td>: {{ $metadata['prodi'] }}</td>
+            <td style="font-weight: bold;">Total Data</td>
+            <td>: {{ $metadata['total'] }} Mahasiswa</td>
+        </tr>
+        <tr>
+            <td style="font-weight: bold;">Periode</td>
+            <td>: {{ $metadata['periode'] }}</td>
+            <td></td>
+            <td></td>
+        </tr>
     </table>
-</body>
+</div>
 
-</html>
+<table class="main-table" style="width: 100%; border-collapse: collapse; font-size: 10px; margin-top: 20px;">
+    <thead>
+        <tr style="background-color: #1e3a8a; color: white;">
+            <th style="padding: 10px;">No</th>
+            <th style="padding: 10px;">Nama Mahasiswa</th>
+            <th style="padding: 10px;">NIM</th>
+            <th style="padding: 10px;">Lama Studi</th>
+            <th style="padding: 10px;">IPK</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach($data as $index => $mhs)
+        <tr>
+            <td style="text-align: center; padding: 8px; border-bottom: 1px solid #eee;">{{ $index + 1 }}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">{{ strtoupper($mhs->nama) }}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #eee;">{{ $mhs->nim }}</td>
+            <td style="text-align: center; padding: 8px; border-bottom: 1px solid #eee;">
+                <span style="color: {{ $mhs->lama_studi <= 9 ? '#1e3a8a' : '#ef4444' }}; font-weight: bold;">
+                    {{ $mhs->lama_studi }} Semester
+                </span>
+            </td>
+            <td style="text-align: center; padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">
+                {{ number_format($mhs->ipk, 2) }}
+            </td>
+        </tr>
+        @endforeach
+    </tbody>
+</table>

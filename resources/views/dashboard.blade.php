@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="scroll-smooth">
 
 <head>
     <meta charset="UTF-8">
@@ -32,7 +32,7 @@
                 <form action="{{ route('dashboard') }}" method="GET" class="flex flex-nowrap items-end gap-4 bg-white p-5 rounded-2xl border shadow-sm overflow-x-auto hide-scrollbar">
                     <div class="flex flex-col flex-shrink-0">
                         <label class="text-[9px] font-bold text-gray-400 uppercase mb-1 ml-1 tracking-widest">Fakultas</label>
-                        <select name="fakultas" class="text-xs font-bold bg-gray-50 border-none rounded-xl px-4 py-2.5 min-w-[180px]">
+                        <select name="fakultas" id="fakultas" class="text-xs font-bold bg-gray-50 border-none rounded-xl px-4 py-2.5 min-w-[180px]">
                             <option value="">Semua Fakultas</option>
                             @foreach($listFakultas as $f)
                             <option value="{{ $f }}" {{ request('fakultas') == $f ? 'selected' : '' }}>{{ $f }}</option>
@@ -41,11 +41,17 @@
                     </div>
 
                     <div class="flex flex-col flex-shrink-0">
+                        <label class="text-[9px] font-bold text-gray-400 uppercase mb-1 ml-1 tracking-widest">Program Studi</label>
+                        <select name="prodi" id="prodi" disabled class="text-xs font-bold bg-gray-50 border-none rounded-xl px-4 py-2.5 min-w-[180px] disabled:opacity-50">
+                            <option value="">Pilih Fakultas Dulu</option>
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col flex-shrink-0">
                         <label class="text-[9px] font-bold text-gray-400 uppercase mb-1 ml-1 tracking-widest">Dari</label>
                         <select name="tahun_mulai" class="text-xs font-bold bg-gray-50 border-none rounded-xl px-4 py-2.5">
-                            <option value="">Pilih Tahun</option>
                             @foreach($listTahun->sort() as $t)
-                            <option value="{{ $t }}" {{ request('tahun_mulai') == $t ? 'selected' : '' }}>{{ $t }}</option>
+                            <option value="{{ $t }}" {{ $tahunMulai == $t ? 'selected' : '' }}>{{ $t }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -53,15 +59,21 @@
                     <div class="flex flex-col flex-shrink-0">
                         <label class="text-[9px] font-bold text-gray-400 uppercase mb-1 ml-1 tracking-widest">Sampai</label>
                         <select name="tahun_selesai" class="text-xs font-bold bg-gray-50 border-none rounded-xl px-4 py-2.5">
-                            <option value="">Pilih Tahun</option>
                             @foreach($listTahun->sortDesc() as $t)
-                            <option value="{{ $t }}" {{ request('tahun_selesai') == $t ? 'selected' : '' }}>{{ $t }}</option>
+                            <option value="{{ $t }}" {{ $tahunSelesai == $t ? 'selected' : '' }}>{{ $t }}</option>
                             @endforeach
                         </select>
                     </div>
 
-                    <button type="submit" class="px-8 py-2.5 bg-blue-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-800 transition-all shadow-lg">
-                        Terapkan
+                    <button type="submit" class="px-8 py-2.5 bg-blue-900 text-white text-[10px] font-black uppercase rounded-xl hover:bg-blue-800 transition-all shadow-lg">Terapkan</button>
+
+                    <button id="btn-export" type="button" disabled
+                        onclick="handleExport()"
+                        class="flex items-center gap-2 px-6 py-2.5 bg-gray-200 text-gray-400 rounded-xl font-black uppercase tracking-widest text-[10px] cursor-not-allowed transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Export PDF
                     </button>
                 </form>
             </div>
@@ -69,98 +81,153 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Total Alumni</p>
-                    <h3 class="text-3xl font-black mt-1">{{ number_format($total) }}</h3>
+                    <h3 class="text-3xl font-black text-blue-900 mt-1">{{ number_format($total) }}</h3>
                 </div>
-                <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+
+                <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm border-l-4 border-l-blue-900">
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest text-blue-900">Tepat Waktu</p>
-                    @php $persenTepat = ($total > 0) ? ($tepat / $total) * 100 : 0; @endphp
-                    <h3 class="text-3xl font-black text-blue-900 mt-1">{{ round($persenTepat, 1) }}%</h3>
+                    <div class="flex items-end gap-2">
+                        <h3 class="text-3xl font-black text-blue-900 mt-1">{{ round($persenTepatNow, 1) }}%</h3>
+                        <span class="text-[10px] font-black mb-1.5 px-1.5 py-0.5 rounded-lg {{ $trendTepat >= 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600' }}">
+                            {{ $trendTepat >= 0 ? '↑' : '↓' }} {{ abs(round($trendTepat, 1)) }}%
+                        </span>
+                    </div>
                 </div>
-                <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+
+                <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm border-l-4 border-l-red-500">
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest text-red-500">Terlambat</p>
-                    <h3 class="text-3xl font-black text-red-500 mt-1">{{ round(100 - $persenTepat, 1) }}%</h3>
+                    <div class="flex items-end gap-2">
+                        <h3 class="text-3xl font-black text-red-500 mt-1">{{ round($persenTerlambatNow, 1) }}%</h3>
+                        <span class="text-[10px] font-black mb-1.5 px-1.5 py-0.5 rounded-lg {{ $trendTerlambat <= 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600' }}">
+                            {{ $trendTerlambat <= 0 ? '↓' : '↑' }} {{ abs(round($trendTerlambat, 1)) }}%
+                        </span>
+                    </div>
                 </div>
-                <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+
+                <div class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm border-l-4 border-l-orange-500">
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Rata-rata Studi</p>
-                    <h3 class="text-3xl font-black mt-1 text-orange-500">{{ $rataStudi }} <small class="text-xs uppercase">Sem</small></h3>
+                    <h3 class="text-3xl font-black text-orange-500 mt-1">{{ $rataStudi }} <small class="text-[10px] uppercase font-bold tracking-tighter">Sem</small></h3>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 <div class="lg:col-span-2 bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm">
-                    <h4 class="font-bold text-gray-400 uppercase text-[10px] mb-8 tracking-[0.3em] italic text-black italic">Tren Kelulusan ({{ $tahunMulai }} - {{ $tahunSelesai }})</h4>
+                    <h4 class="font-bold text-gray-400 uppercase text-[10px] mb-8 tracking-[0.3em] italic">Tren Kelulusan</h4>
                     <div class="h-[320px]"><canvas id="lineChart"></canvas></div>
                 </div>
                 <div class="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm flex flex-col items-center justify-center">
-                    <h4 class="font-bold text-gray-400 uppercase text-[10px] mb-8 tracking-[0.3em] italic text-center">Proporsi Kelulusan</h4>
+                    <h4 class="font-bold text-gray-400 uppercase text-[10px] mb-8 tracking-[0.3em] italic">Proporsi</h4>
                     <div class="w-full max-w-[220px]"><canvas id="pieChart"></canvas></div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2 bg-blue-900 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
-                    <div class="relative z-10">
-                        <div class="flex justify-between items-center mb-6">
-                            <h4 class="font-bold text-blue-200 uppercase text-[10px] tracking-widest">
-                                🏆 Top 5 Cumlaude: <span id="current-fakultas-label" class="text-white">Fakultas Teknik</span>
-                            </h4>
-                            <div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping"></div>
-                        </div>
-                        <div id="top-cumlaude-list" class="space-y-3 transition-all duration-500">
-                            @foreach($topCumlaude as $index => $alumni)
-                            <div class="flex items-center justify-between bg-blue-800/40 p-4 rounded-2xl border border-blue-700/50">
-                                <div class="flex items-center gap-4">
-                                    <span class="w-6 h-6 flex items-center justify-center bg-white text-blue-900 rounded-full font-black text-[10px]">{{ $index + 1 }}</span>
-                                    <div>
-                                        <h5 class="text-white font-bold text-xs uppercase">{{ $alumni['nama'] }}</h5>
-                                        <p class="text-blue-300 text-[9px]">{{ $alumni['prodi'] }}</p>
-                                    </div>
-                                </div>
-                                <span class="text-white font-black text-lg">{{ number_format($alumni['ipk'], 2) }}</span>
-                            </div>
-                            @endforeach
-                        </div>
+            <div id="tabel-mahasiswa" class="bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden mb-8 scroll-mt-10">
+                <div class="p-6 border-b border-gray-50 flex flex-col md:flex-row justify-between items-center gap-4 bg-gray-50/50">
+                    <div>
+                        <h2 class="text-sm font-black text-blue-900 uppercase tracking-wider">Daftar Mahasiswa</h2>
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-white px-3 py-1 rounded-full border border-gray-100 mt-2 inline-block">
+                            {{ $mahasiswas->total() }} Record
+                        </span>
                     </div>
+
+                    <form action="{{ route('dashboard') }}#tabel-mahasiswa" method="GET" class="flex items-center gap-2">
+                        @if(request('fakultas')) <input type="hidden" name="fakultas" value="{{ request('fakultas') }}"> @endif
+                        @if(request('prodi')) <input type="hidden" name="prodi" value="{{ request('prodi') }}"> @endif
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari Nama / NIM..." class="text-xs font-bold bg-white border border-gray-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-900 w-[200px]">
+                        <button type="submit" class="px-4 py-2 bg-blue-900 text-white rounded-xl text-[10px] font-black uppercase">Cari</button>
+                    </form>
                 </div>
 
-                <div class="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-sm">
-                    <h4 class="font-bold text-gray-400 uppercase text-[10px] mb-8 tracking-[0.3em] italic">Persentase Tepat Waktu</h4>
-                    <div class="space-y-6">
-                        @foreach($dataFakultas as $f)
-                        <div>
-                            <div class="flex justify-between text-[11px] mb-2 font-black uppercase text-gray-600">
-                                <span>{{ $f->fakultas }}</span>
-                                <span class="text-blue-900">{{ $f->persentase }}%</span>
-                            </div>
-                            <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                                <div class="h-full bg-blue-900" style="width: {{ $f->persentase }}%"></div>
-                            </div>
-                        </div>
-                        @endforeach
-                    </div>
-                </div>
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b border-gray-100 dark:border-gray-700">
+                            <th class="p-5 text-[10px] font-black text-gray-400 uppercase whitespace-nowrap">No</th>
+                            <th class="p-5 text-[10px] font-black text-gray-400 uppercase whitespace-nowrap">Mahasiswa</th>
+                            <th class="p-5 text-[10px] font-black text-gray-400 uppercase whitespace-nowrap">NIM</th>
+                            <th class="p-5 text-[10px] font-black text-gray-400 uppercase whitespace-nowrap text-center">Lama Studi</th>
+                            <th class="p-5 text-[10px] font-black text-gray-400 uppercase whitespace-nowrap text-center">IPK</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($mahasiswas as $index => $mhs)
+                        <tr class="border-b border-gray-50 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all">
+                            <td class="p-5 text-xs font-bold text-gray-400">
+                                {{ $mahasiswas->firstItem() + $index }}
+                            </td>
+
+                            <td class="p-5">
+                                <p class="text-xs font-black text-blue-900 dark:text-blue-400 uppercase">{{ $mhs->nama }}</p>
+                                <p class="text-[9px] text-gray-400 font-bold uppercase mt-0.5">{{ $mhs->prodi }} - {{ $mhs->tahun_lulus }}</p>
+                            </td>
+
+                            <td class="p-5 text-xs font-bold text-gray-600 dark:text-gray-300">
+                                {{ $mhs->nim }}
+                            </td>
+
+                            <td class="p-5 text-center">
+                                <span class="text-xs font-black {{ $mhs->lama_studi <= 9 ? 'text-blue-600 dark:text-blue-400' : 'text-red-500 dark:text-red-400' }}">
+                                    {{ $mhs->lama_studi }} <span class="text-[9px] font-bold text-gray-400 uppercase">Sem</span>
+                                </span>
+                            </td>
+
+                            <td class="p-5 text-center">
+                                <span class="px-3 py-1.5 bg-blue-50 dark:bg-gray-800 text-blue-900 dark:text-blue-300 rounded-xl text-[10px] font-black shadow-sm">
+                                    {{ number_format($mhs->ipk, 2) }}
+                                </span>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="5" class="p-8 text-center text-xs font-bold text-gray-400 uppercase tracking-widest">
+                                Data Mahasiswa Tidak Ditemukan
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+                <div class="p-5 bg-gray-50/50 border-t">{{ $mahasiswas->links() }}</div>
             </div>
         </div>
 
-        <div id="chart-data"
-            data-labels='{!! $tren->pluck("tahun_lulus")->toJson() !!}'
-            data-total='{!! $tren->pluck("total")->map(fn($v) => (int)$v)->toJson() !!}'
-            data-tepat-tren='{!! $tren->pluck("tepat_waktu")->map(fn($v) => (int)$v)->toJson() !!}'
-            data-lambat-tren='{!! $tren->pluck("terlambat")->map(fn($v) => (int)$v)->toJson() !!}'
-            data-tepat="{{ $tepat }}"
-            data-all="{{ $total }}">
-        </div>
+        <div id="chart-data" data-labels='{!! $tren->pluck("tahun_lulus")->toJson() !!}' data-total='{!! $tren->pluck("total")->toJson() !!}' data-tepat-tren='{!! $tren->pluck("tepat_waktu")->toJson() !!}' data-lambat-tren='{!! $tren->pluck("terlambat")->toJson() !!}' data-tepat="{{ $tepat }}" data-all="{{ $total }}"></div>
     </main>
 
     <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
         document.addEventListener('DOMContentLoaded', function() {
-            const dataEl = document.getElementById('chart-data');
-            const labels = JSON.parse(dataEl.getAttribute('data-labels'));
-            const totalData = JSON.parse(dataEl.getAttribute('data-total'));
-            const tepatData = JSON.parse(dataEl.getAttribute('data-tepat-tren'));
-            const lambatData = JSON.parse(dataEl.getAttribute('data-lambat-tren'));
-            const tepat = parseInt(dataEl.getAttribute('data-tepat'));
-            const all = parseInt(dataEl.getAttribute('data-all'));
+            // DEPENDENT DROPDOWN
+            const prodiData = @json($prodiPerFakultas);
+            const fakultasSelect = document.getElementById('fakultas');
+            const prodiSelect = document.getElementById('prodi');
+            const selectedProdi = "{{ request('prodi') }}";
+
+            function updateProdi() {
+                const f = fakultasSelect.value;
+                prodiSelect.innerHTML = '<option value="">Semua Prodi</option>';
+                if (f && prodiData[f]) {
+                    prodiSelect.disabled = false;
+                    prodiData[f].forEach(p => {
+                        const opt = document.createElement('option');
+                        opt.value = p.prodi;
+                        opt.text = p.prodi;
+                        if (p.prodi === selectedProdi) opt.selected = true;
+                        prodiSelect.appendChild(opt);
+                    });
+                } else {
+                    prodiSelect.disabled = true;
+                }
+            }
+            fakultasSelect.addEventListener('change', updateProdi);
+            updateProdi();
+
+            // CHARTS LOGIC
+            const el = document.getElementById('chart-data');
+            const labels = JSON.parse(el.getAttribute('data-labels'));
+            const totalData = JSON.parse(el.getAttribute('data-total'));
+            const tepatData = JSON.parse(el.getAttribute('data-tepat-tren'));
+            const lambatData = JSON.parse(el.getAttribute('data-lambat-tren')); // Ambil data tidak tepat (terlambat)
 
             // LINE CHART
             new Chart(document.getElementById('lineChart'), {
@@ -168,34 +235,34 @@
                 data: {
                     labels: labels,
                     datasets: [{
-                            label: 'Total',
+                            label: 'Total Lulusan',
                             data: totalData,
                             borderColor: '#1e3a8a',
                             backgroundColor: 'rgba(30, 58, 138, 0.05)',
-                            borderWidth: 4,
+                            borderWidth: 3,
                             tension: 0.4,
                             fill: true,
-                            pointStyle: 'circle',
-                            pointRadius: 4
+                            pointRadius: 3,
+                            pointStyle: 'circle'
                         },
                         {
-                            label: 'Tepat',
+                            label: 'Tepat Waktu',
                             data: tepatData,
-                            borderColor: '#10b981',
+                            borderColor: '#10b981', // Warna Hijau
                             borderWidth: 3,
                             tension: 0.4,
-                            pointStyle: 'circle',
-                            pointRadius: 2
+                            pointRadius: 3,
+                            pointStyle: 'circle'
                         },
                         {
-                            label: 'Terlambat',
+                            label: 'Tidak Tepat',
                             data: lambatData,
-                            borderColor: '#ef4444',
+                            borderColor: '#ef4444', // Warna Merah
                             borderWidth: 3,
-                            borderDash: [5, 5],
+                            borderDash: [5, 5], // Efek garis putus-putus biar gampang dibedakan
                             tension: 0.4,
-                            pointStyle: 'circle',
-                            pointRadius: 2
+                            pointRadius: 3,
+                            pointStyle: 'circle'
                         }
                     ]
                 },
@@ -226,55 +293,49 @@
                 }
             });
 
-            // PIE CHART
             new Chart(document.getElementById('pieChart'), {
                 type: 'doughnut',
                 data: {
-                    labels: ['Tepat Waktu', 'Terlambat'],
+                    labels: ['Tepat', 'Terlambat'],
                     datasets: [{
-                        data: [tepat, all - tepat],
-                        backgroundColor: ['#1e3a8a', '#ef4444'],
-                        borderWidth: 0
+                        data: [parseInt(el.getAttribute('data-tepat')), parseInt(el.getAttribute('data-all')) - parseInt(el.getAttribute('data-tepat'))],
+                        backgroundColor: ['#1e3a8a', '#ef4444']
                     }]
                 },
                 options: {
-                    cutout: '80%',
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
+                    cutout: '80%'
                 }
             });
-
-            // ROLLING TOP CUMLAUDE
-            let fIndex = 1;
-            setInterval(() => {
-                const list = document.getElementById('top-cumlaude-list');
-                const label = document.getElementById('current-fakultas-label');
-                list.style.opacity = '0';
-                setTimeout(() => {
-                    fetch(`/api/top-cumlaude?index=${fIndex}`)
-                        .then(r => r.json())
-                        .then(res => {
-                            label.innerText = res.fakultas;
-                            let html = '';
-                            res.data.forEach((a, i) => {
-                                html += `<div class="flex items-center justify-between bg-blue-800/40 p-4 rounded-2xl border border-blue-700/50">
-                                            <div class="flex items-center gap-4">
-                                                <span class="w-6 h-6 flex items-center justify-center bg-white text-blue-900 rounded-full font-black text-[10px]">${i+1}</span>
-                                                <div><h5 class="text-white font-bold text-xs uppercase">${a.nama}</h5><p class="text-blue-300 text-[9px]">${a.prodi}</p></div>
-                                            </div>
-                                            <span class="text-white font-black text-lg">${parseFloat(a.ipk).toFixed(2)}</span>
-                                        </div>`;
-                            });
-                            list.innerHTML = html;
-                            list.style.opacity = '1';
-                            fIndex++;
-                        });
-                }, 500);
-            }, 10000);
         });
+
+        const fakultasSelect = document.getElementById('fakultas');
+        const btnExport = document.getElementById('btn-export');
+
+        function toggleExportButton() {
+            if (fakultasSelect.value !== "") {
+                // Aktifkan tombol
+                btnExport.disabled = false;
+                btnExport.classList.remove('bg-gray-200', 'text-gray-400', 'cursor-not-allowed');
+                btnExport.classList.add('bg-blue-900', 'text-white', 'hover:bg-blue-800', 'shadow-lg', 'active:scale-95');
+            } else {
+                // Matikan tombol
+                btnExport.disabled = true;
+                btnExport.classList.add('bg-gray-200', 'text-gray-400', 'cursor-not-allowed');
+                btnExport.classList.remove('bg-blue-900', 'text-white', 'hover:bg-blue-800', 'shadow-lg', 'active:scale-95');
+            }
+        }
+
+        // Jalankan saat fakultas diganti
+        fakultasSelect.addEventListener('change', toggleExportButton);
+
+        // Jalankan saat halaman pertama muat (buat jaga-jaga kalau filter sudah terisi)
+        toggleExportButton();
+
+        // Fungsi buat kirim perintah export dengan filter yang ada
+        function handleExport() {
+            const params = new URLSearchParams(new FormData(fakultasSelect.form)).toString();
+            window.location.href = "{{ route('dashboard.export') }}?" + params;
+        }
     </script>
 </body>
 
