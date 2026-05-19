@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::get('/api/top-cumlaude', [DashboardController::class, 'getTopCumlaude'])->name('api.top-cumlaude');
 Route::get('/export-pdf', [DashboardController::class, 'exportPdf'])->name('dashboard.export');
-
+Route::get('/kinerja-prodi', [\App\Http\Controllers\DashboardController::class, 'kinerjaProdi'])->name('kinerja.prodi');
 
 // ==========================================
 // ROUTE GUEST (Hanya untuk proses Login)

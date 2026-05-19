@@ -32,7 +32,7 @@
                 <form action="{{ route('dashboard') }}" method="GET" class="flex flex-nowrap items-end gap-4 bg-white p-5 rounded-2xl border shadow-sm overflow-x-auto hide-scrollbar">
                     <div class="flex flex-col flex-shrink-0">
                         <label class="text-[9px] font-bold text-gray-400 uppercase mb-1 ml-1 tracking-widest">Fakultas</label>
-                        <select name="fakultas" id="fakultas" class="text-xs font-bold bg-gray-50 border-none rounded-xl px-4 py-2.5 min-w-[180px]">
+                        <select name="fakultas" id="fakultas" class="text-xs font-bold bg-gray-50 border-none rounded-xl px-4 py-2.5 min-w-[180px] focus:ring-2 focus:ring-blue-900">
                             <option value="">Semua Fakultas</option>
                             @foreach($listFakultas as $f)
                             <option value="{{ $f }}" {{ request('fakultas') == $f ? 'selected' : '' }}>{{ $f }}</option>
@@ -42,30 +42,24 @@
 
                     <div class="flex flex-col flex-shrink-0">
                         <label class="text-[9px] font-bold text-gray-400 uppercase mb-1 ml-1 tracking-widest">Program Studi</label>
-                        <select name="prodi" id="prodi" disabled class="text-xs font-bold bg-gray-50 border-none rounded-xl px-4 py-2.5 min-w-[180px] disabled:opacity-50">
+                        <select name="prodi" id="prodi" disabled class="text-xs font-bold bg-gray-50 border-none rounded-xl px-4 py-2.5 min-w-[180px] disabled:opacity-50 focus:ring-2 focus:ring-blue-900">
                             <option value="">Pilih Fakultas Dulu</option>
                         </select>
                     </div>
 
                     <div class="flex flex-col flex-shrink-0">
-                        <label class="text-[9px] font-bold text-gray-400 uppercase mb-1 ml-1 tracking-widest">Dari</label>
-                        <select name="tahun_mulai" class="text-xs font-bold bg-gray-50 border-none rounded-xl px-4 py-2.5">
-                            @foreach($listTahun->sort() as $t)
-                            <option value="{{ $t }}" {{ $tahunMulai == $t ? 'selected' : '' }}>{{ $t }}</option>
+                        <label class="text-[9px] font-bold text-gray-400 uppercase mb-1 ml-1 tracking-widest">Angkatan Lulus</label>
+                        <select name="tahun_lulus" class="text-xs font-bold bg-gray-50 border-none rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-900">
+                            <option value="">Semua Angkatan</option>
+                            @foreach($listTahun as $t)
+                            <option value="{{ $t }}" {{ request('tahun_lulus') == $t ? 'selected' : '' }}>{{ $t }}</option>
                             @endforeach
                         </select>
                     </div>
 
-                    <div class="flex flex-col flex-shrink-0">
-                        <label class="text-[9px] font-bold text-gray-400 uppercase mb-1 ml-1 tracking-widest">Sampai</label>
-                        <select name="tahun_selesai" class="text-xs font-bold bg-gray-50 border-none rounded-xl px-4 py-2.5">
-                            @foreach($listTahun->sortDesc() as $t)
-                            <option value="{{ $t }}" {{ $tahunSelesai == $t ? 'selected' : '' }}>{{ $t }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+                    <button type="submit" class="px-8 py-2.5 bg-blue-900 text-white text-[10px] font-black uppercase rounded-xl hover:bg-blue-800 transition-all shadow-lg active:scale-95">Terapkan</button>
 
-                    <button type="submit" class="px-8 py-2.5 bg-blue-900 text-white text-[10px] font-black uppercase rounded-xl hover:bg-blue-800 transition-all shadow-lg">Terapkan</button>
+                    <a href="{{ route('dashboard') }}" class="px-5 py-2.5 bg-gray-100 text-gray-500 text-[10px] font-black uppercase rounded-xl hover:bg-gray-200 transition-all active:scale-95">Reset</a>
 
                     <button id="btn-export" type="button" disabled
                         onclick="handleExport()"
@@ -205,7 +199,7 @@
 
             function updateProdi() {
                 const f = fakultasSelect.value;
-                prodiSelect.innerHTML = '<option value="">Semua Prodi</option>';
+                prodiSelect.innerHTML = '<option value="">Semua Program Studi</option>';
                 if (f && prodiData[f]) {
                     prodiSelect.disabled = false;
                     prodiData[f].forEach(p => {

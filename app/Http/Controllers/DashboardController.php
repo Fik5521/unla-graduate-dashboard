@@ -12,24 +12,33 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. Input Filter & Search
+        // 1. Daftar nama Fakultas yang dikecualikan (Blacklist)
+        $pengecualianFakultas = ['teknik', 'hukum', 'ekonomi dan bisnis'];
+
+        // 2. Input Filter & Search
         $filterFakultas = $request->fakultas;
         $prodiSelected = $request->prodi;
         $search = $request->search;
+        $filterTahun = $request->tahun_lulus; // Ganti jadi 1 filter tahun
 
-        // 2. Tahun Aktif (Default & Range)
-        $minYearDb = Lulusan::where('tahun_lulus', '>', 2000)->min('tahun_lulus') ?? 2016;
-        $maxYearDb = Lulusan::where('tahun_lulus', '>', 2000)->max('tahun_lulus') ?? date('Y');
-        $tahunMulai = $request->tahun_mulai ?? $minYearDb;
-        $tahunSelesai = $request->tahun_selesai ?? $maxYearDb;
+        $maxYearDb = Lulusan::where('tahun_lulus', '>', 2000)
+            ->where('tahun_lulus', '<=', 2025)
+            ->whereNotIn('fakultas', $pengecualianFakultas)
+            ->max('tahun_lulus') ?? 2025;
 
-        // 3. Base Query untuk Grafik & Card (Makro)
-        $baseQuery = Lulusan::where('tahun_lulus', '>', 2000);
+        // 3. Base Query (Proteksi Fakultas & Batas 2025)
+        $baseQuery = Lulusan::where('tahun_lulus', '>', 2000)
+            ->where('tahun_lulus', '<=', 2025)
+            ->whereNotIn('fakultas', $pengecualianFakultas);
+
         if ($filterFakultas) $baseQuery->where('fakultas', $filterFakultas);
         if ($prodiSelected) $baseQuery->where('prodi', $prodiSelected);
 
-        // Data Sekarang (Sesuai Range Tahun)
-        $queryNow = (clone $baseQuery)->whereBetween('tahun_lulus', [$tahunMulai, $tahunSelesai]);
+        // 4. Data Utama (Terapkan Filter Tahun di sini)
+        $queryNow = (clone $baseQuery);
+        if ($filterTahun) {
+            $queryNow->where('tahun_lulus', $filterTahun);
+        }
 
         $total = $queryNow->count();
         $tepat = (clone $queryNow)->where('lama_studi', '<=', 8)->count();
@@ -38,16 +47,26 @@ class DashboardController extends Controller
         $persenTepatNow = ($total > 0) ? ($tepat / $total) * 100 : 0;
         $persenTerlambatNow = ($total > 0) ? 100 - $persenTepatNow : 0;
 
-        // 4. Logika Trend (Bandingkan dengan 1 Tahun Sebelumnya)
-        $tahunLalu = $tahunMulai - 1;
+        // 5. Logika Trend 
+        // Bandingkan tahun yang dipilih vs tahun sebelumnya (atau tahun terbaru vs sebelumnya jika tidak ada filter)
+        $tahunAcuan = $filterTahun ? $filterTahun : $maxYearDb;
+        $tahunLalu = $tahunAcuan - 1;
+
+        $queryTrendNow = (clone $baseQuery)->where('tahun_lulus', $tahunAcuan);
+        $totalTrendNow = $queryTrendNow->count();
+        $tepatTrendNow = (clone $queryTrendNow)->where('lama_studi', '<=', 8)->count();
+        $persenTepatTrendNow = ($totalTrendNow > 0) ? ($tepatTrendNow / $totalTrendNow) * 100 : 0;
+        $persenTerlambatTrendNow = ($totalTrendNow > 0) ? 100 - $persenTepatTrendNow : 0;
+
         $queryPrev = (clone $baseQuery)->where('tahun_lulus', $tahunLalu);
         $totalPrev = $queryPrev->count();
         $tepatPrev = (clone $queryPrev)->where('lama_studi', '<=', 8)->count();
         $persenTepatPrev = ($totalPrev > 0) ? ($tepatPrev / $totalPrev) * 100 : 0;
-        $trendTepat = $persenTepatNow - $persenTepatPrev;
-        $trendTerlambat = $persenTerlambatNow - (100 - $persenTepatPrev);
 
-        // 5. Query Data Mahasiswa (Tabel)
+        $trendTepat = $persenTepatTrendNow - $persenTepatPrev;
+        $trendTerlambat = $persenTerlambatTrendNow - (100 - $persenTepatPrev);
+
+        // 6. Query Data Mahasiswa (Tabel)
         $queryTable = (clone $queryNow);
         if ($search) {
             $queryTable->where(function ($q) use ($search) {
@@ -56,8 +75,8 @@ class DashboardController extends Controller
         }
         $mahasiswas = $queryTable->orderBy('ipk', 'desc')->paginate(10)->appends($request->all());
 
-        // 6. Data Grafik & Pendukung
-        $tren = (clone $queryNow)->select(
+        // 7. Grafik Garis Tren (Sengaja pakai $baseQuery agar grafiknya tetap nampil semua tahun untuk prodi/fakultas terkait, tidak jadi cuma 1 titik)
+        $tren = (clone $baseQuery)->select(
             'tahun_lulus',
             DB::raw('count(*) as total'),
             DB::raw('count(CASE WHEN lama_studi <= 9 THEN 1 END) as tepat_waktu'),
@@ -65,11 +84,16 @@ class DashboardController extends Controller
         )
             ->groupBy('tahun_lulus')->orderBy('tahun_lulus', 'asc')->get();
 
-        $listFakultas = Lulusan::select('fakultas')->distinct()->orderBy('fakultas')->pluck('fakultas');
-        $listTahun = Lulusan::select('tahun_lulus')->distinct()->where('tahun_lulus', '>', 2000)->orderBy('tahun_lulus', 'desc')->pluck('tahun_lulus');
-        $prodiPerFakultas = Lulusan::select('fakultas', 'prodi')->distinct()->get()->groupBy('fakultas');
+        $listFakultas = Lulusan::select('fakultas')->distinct()->whereNotIn('fakultas', $pengecualianFakultas)->orderBy('fakultas')->pluck('fakultas');
+        $listTahun = Lulusan::select('tahun_lulus')->distinct()->where('tahun_lulus', '>', 2000)->where('tahun_lulus', '<=', 2025)->orderBy('tahun_lulus', 'desc')->pluck('tahun_lulus');
+        $prodiPerFakultas = Lulusan::select('fakultas', 'prodi')->distinct()->whereNotIn('fakultas', $pengecualianFakultas)->get()->groupBy('fakultas');
+
         $dataFakultas = Lulusan::select('fakultas', DB::raw('round((count(CASE WHEN lama_studi <= 8 THEN 1 END) / count(*)) * 100) as persentase'))
-            ->where('tahun_lulus', '>', 2000)->groupBy('fakultas')->get();
+            ->where('tahun_lulus', '>', 2000)
+            ->where('tahun_lulus', '<=', 2025)
+            ->whereNotIn('fakultas', $pengecualianFakultas)
+            ->groupBy('fakultas')->get();
+
         $topCumlaude = (clone $queryNow)->orderBy('ipk', 'desc')->take(5)->get();
 
         return view('dashboard', compact(
@@ -85,8 +109,7 @@ class DashboardController extends Controller
             'listTahun',
             'dataFakultas',
             'topCumlaude',
-            'tahunMulai',
-            'tahunSelesai',
+            'filterTahun',
             'prodiPerFakultas',
             'mahasiswas'
         ));
@@ -94,7 +117,6 @@ class DashboardController extends Controller
 
     public function exportPdf(Request $request)
     {
-        // Proteksi: Wajib pilih Fakultas
         if (!$request->fakultas) {
             return back()->with('error', 'Silakan pilih Fakultas terlebih dahulu.');
         }
@@ -106,13 +128,19 @@ class DashboardController extends Controller
             $filterFakultas = $request->fakultas;
             $prodiSelected = $request->prodi;
             $search = $request->search;
+            $filterTahun = $request->tahun_lulus; // Ambil filter tahun lulus
 
-            $tahunMulai = $request->tahun_mulai;
-            $tahunSelesai = $request->tahun_selesai;
+            $pengecualianFakultas = ['teknik', 'hukum', 'ekonomi dan bisnis'];
 
             $query = Lulusan::where('tahun_lulus', '>', 2000)
-                ->whereBetween('tahun_lulus', [$tahunMulai, $tahunSelesai])
+                ->where('tahun_lulus', '<=', 2025)
+                ->whereNotIn('fakultas', $pengecualianFakultas)
                 ->where('fakultas', $filterFakultas);
+
+            // Terapkan filter tahun lulus ke PDF
+            if ($filterTahun) {
+                $query->where('tahun_lulus', $filterTahun);
+            }
 
             if ($prodiSelected) $query->where('prodi', $prodiSelected);
             if ($search) {
@@ -123,11 +151,10 @@ class DashboardController extends Controller
 
             $data = $query->orderBy('ipk', 'desc')->get();
 
-            // Siapkan metadata (Pastikan key 'periode' ada di sini)
             $metadata = [
                 'fakultas' => $filterFakultas,
                 'prodi'    => $prodiSelected ?? 'Semua Prodi',
-                'periode'  => $tahunMulai . ' - ' . $tahunSelesai, // Kita pakai periode
+                'periode'  => $filterTahun ? 'Angkatan ' . $filterTahun : 'Semua Angkatan (s/d 2025)',
                 'total'    => $data->count(),
                 'tanggal'  => now()->format('d F Y')
             ];
@@ -215,5 +242,95 @@ class DashboardController extends Controller
 
         // 4. Balik ke halaman pengaturan dengan pesan sukses
         return back()->with('success', "Import Selesai! $jumlahUpdate data diperbarui, dan $jumlahBaru data baru ditambahkan ke sistem.");
+    }
+
+    public function kinerjaProdi(Request $request)
+    {
+        // Tangkap input filter
+        $filterFakultas = $request->fakultas;
+        $prodiSelected = $request->prodi; // Menangkap filter prodi
+        $filterTahun = $request->tahun_lulus;
+
+        $pengecualianFakultas = ['teknik', 'hukum', 'ekonomi dan bisnis'];
+
+        // Base Query
+        $query = \App\Models\Lulusan::where('tahun_lulus', '>', 2000)
+            ->where('tahun_lulus', '<=', 2025)
+            ->whereNotIn('fakultas', $pengecualianFakultas);
+
+        // Terapkan filter Fakultas jika dipilih
+        if ($filterFakultas) {
+            $query->where('fakultas', $filterFakultas);
+        }
+
+        // Terapkan filter Prodi jika dipilih
+        if ($prodiSelected) {
+            $query->where('prodi', $prodiSelected);
+        }
+
+        // Terapkan filter Angkatan jika dipilih
+        if ($filterTahun) {
+            $query->where('tahun_lulus', $filterTahun);
+        }
+
+        // Mengelompokkan (Group By) data berdasarkan Fakultas & Prodi
+        $kinerjaProdi = $query->select(
+            'fakultas',
+            'prodi',
+            \Illuminate\Support\Facades\DB::raw('COUNT(id) as total_lulusan'),
+            \Illuminate\Support\Facades\DB::raw('ROUND(AVG(lama_studi), 1) as rata_studi'),
+            \Illuminate\Support\Facades\DB::raw('COUNT(CASE WHEN lama_studi <= 8 THEN 1 END) as tepat_waktu')
+        )
+            ->groupBy('fakultas', 'prodi')
+            ->orderBy('fakultas')
+            ->orderBy('prodi')
+            ->get();
+
+        // Kalkulasi Persentase Tepat Waktu per Prodi
+        foreach ($kinerjaProdi as $kp) {
+            $kp->persen_tepat = $kp->total_lulusan > 0
+                ? round(($kp->tepat_waktu / $kp->total_lulusan) * 100, 1)
+                : 0;
+        }
+
+        // --- DATA UNTUK SUMMARY CARDS PADA UI ---
+        $totalAlumni = $kinerjaProdi->sum('total_lulusan');
+        $prodiTercepat = $kinerjaProdi->where('total_lulusan', '>', 0)->sortBy('rata_studi')->first();
+        $prodiTepatTertinggi = $kinerjaProdi->where('total_lulusan', '>', 0)->sortByDesc('persen_tepat')->first();
+
+        // --- DATA UNTUK DROPDOWN FILTER ---
+        $listFakultas = \App\Models\Lulusan::select('fakultas')
+            ->distinct()
+            ->whereNotIn('fakultas', $pengecualianFakultas)
+            ->orderBy('fakultas')
+            ->pluck('fakultas');
+
+        // Ambil data prodi per fakultas untuk logika JavaScript
+        $prodiPerFakultas = \App\Models\Lulusan::select('fakultas', 'prodi')
+            ->distinct()
+            ->whereNotIn('fakultas', $pengecualianFakultas)
+            ->get()
+            ->groupBy('fakultas');
+
+        $listTahun = \App\Models\Lulusan::select('tahun_lulus')
+            ->distinct()
+            ->where('tahun_lulus', '>', 2000)
+            ->where('tahun_lulus', '<=', 2025)
+            ->orderBy('tahun_lulus', 'desc')
+            ->pluck('tahun_lulus');
+
+        // Kirim semua variabel ke View
+        return view('kinerja_prodi', compact(
+            'kinerjaProdi',
+            'listFakultas',
+            'listTahun',
+            'filterTahun',
+            'filterFakultas',
+            'prodiSelected',
+            'prodiPerFakultas',
+            'totalAlumni',
+            'prodiTercepat',
+            'prodiTepatTertinggi'
+        ));
     }
 }
