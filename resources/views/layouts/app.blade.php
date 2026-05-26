@@ -10,7 +10,7 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }
     </style>
 </head>
-<body class="flex min-h-screen">
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300 flex h-screen overflow-hidden">
     @include('partials.sidebar') 
 
     <main class="flex-1 overflow-y-auto">

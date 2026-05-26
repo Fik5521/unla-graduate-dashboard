@@ -9,12 +9,12 @@ class AuditLog extends Model
 {
     use HasFactory;
 
-    // Nama tabel di database
+    // Tabel yang digunakan (opsional, jika nama tabelmu 'audit_logs')
     protected $table = 'audit_logs';
 
-    // Izinkan kolom aksi dan keterangan diisi otomatis saat import
+    // WAJIB ADA: Kolom yang diizinkan untuk diisi secara otomatis
     protected $fillable = [
         'aksi',
-        'keterangan'
+        'keterangan',
     ];
 }
