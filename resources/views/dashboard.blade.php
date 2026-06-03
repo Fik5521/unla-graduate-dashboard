@@ -28,12 +28,13 @@
         @include('partials.header')
 
         <div class="p-4 md:p-8">
+            <!-- TAHAP FILTER -->
             <div class="mb-8">
                 <form action="{{ route('dashboard') }}" method="GET" class="flex flex-col md:flex-row flex-wrap items-start md:items-end gap-3 md:gap-4 bg-white dark:bg-gray-800 p-4 md:p-5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-colors">
 
                     <div class="flex flex-col w-full md:w-auto">
                         <label class="text-[9px] font-bold text-gray-400 uppercase mb-1 ml-1 tracking-widest">Fakultas</label>
-                        <select name="fakultas" id="fakultas" class="w-full text-xs font-bold bg-gray-50 dark:bg-gray-700 dark:text-white border-none rounded-xl px-4 py-3 md:py-2.5 md:min-w-[180px] focus:ring-2 focus:ring-blue-900">
+                        <select name="fakultas" id="fakultas" class="w-full text-xs font-bold bg-gray-50 dark:bg-gray-700 dark:text-white border-none rounded-xl px-4 py-3 md:py-2.5 md:min-w-[180px] focus:ring-2 focus:ring-blue-900 outline-none transition-all">
                             <option value="">Semua Fakultas</option>
                             @foreach($listFakultas as $f)
                             <option value="{{ $f }}" {{ request('fakultas') == $f ? 'selected' : '' }}>{{ $f }}</option>
@@ -43,25 +44,31 @@
 
                     <div class="flex flex-col w-full md:w-auto">
                         <label class="text-[9px] font-bold text-gray-400 uppercase mb-1 ml-1 tracking-widest">Program Studi</label>
-                        <select name="prodi" id="prodi" disabled class="w-full text-xs font-bold bg-gray-50 dark:bg-gray-700 dark:text-white border-none rounded-xl px-4 py-3 md:py-2.5 md:min-w-[180px] focus:ring-2 focus:ring-blue-900 disabled:opacity-50 cursor-not-allowed">
+                        <select name="prodi" id="prodi" disabled class="w-full text-xs font-bold bg-gray-50 dark:bg-gray-700 dark:text-white border-none rounded-xl px-4 py-3 md:py-2.5 md:min-w-[180px] focus:ring-2 focus:ring-blue-900 disabled:opacity-50 cursor-not-allowed outline-none transition-all">
                             <option value="">Pilih Fakultas Dulu</option>
                         </select>
                     </div>
 
                     <div class="flex flex-col w-full md:w-auto">
-                        <label class="text-[9px] font-bold text-gray-400 uppercase mb-1 ml-1 tracking-widest">Angkatan Lulus</label>
-                        <select name="tahun_lulus" class="w-full text-xs font-bold bg-gray-50 dark:bg-gray-700 dark:text-white border-none rounded-xl px-4 py-3 md:py-2.5 md:min-w-[150px] focus:ring-2 focus:ring-blue-900">
+                        <label class="text-[9px] font-bold text-gray-400 uppercase mb-1 ml-1 tracking-widest">Angkatan</label>
+                        <select name="angkatan" class="w-full text-xs font-bold bg-gray-50 dark:bg-gray-700 dark:text-white border-none rounded-xl px-4 py-3 md:py-2.5 md:min-w-[150px] focus:ring-2 focus:ring-blue-900 outline-none transition-all">
                             <option value="">Semua Angkatan</option>
-                            @foreach($listTahun as $t)
-                            <option value="{{ $t }}" {{ request('tahun_lulus') == $t ? 'selected' : '' }}>{{ $t }}</option>
+                            @foreach($listAngkatan as $a)
+                            <option value="{{ $a }}" {{ request('angkatan') == $a ? 'selected' : '' }}>{{ $a }}</option>
                             @endforeach
                         </select>
                     </div>
 
                     <div class="flex gap-2 w-full md:w-auto mt-2 md:mt-0">
-                        <button type="submit" class="flex-1 md:flex-none px-6 py-3 md:py-2.5 bg-blue-900 dark:bg-blue-800 text-white text-[10px] font-black uppercase rounded-xl hover:bg-blue-800 transition-all shadow-lg active:scale-95 text-center">Terapkan</button>
+                        <button type="submit" class="flex-1 md:flex-none px-6 py-3 md:py-2.5 bg-blue-900 dark:bg-blue-800 text-white text-[10px] font-black uppercase rounded-xl hover:bg-blue-800 transition-all shadow-lg active:scale-95 text-center">
+                            Terapkan
+                        </button>
 
-                        <a href="{{ route('dashboard') }}" class="flex-1 md:flex-none px-5 py-3 md:py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 text-[10px] font-black uppercase rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all active:scale-95 text-center flex items-center justify-center">Reset</a>
+                        @if(request('fakultas') || request('prodi') || request('angkatan'))
+                        <a href="{{ route('dashboard') }}" class="flex-1 md:flex-none px-5 py-3 md:py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 text-[10px] font-black uppercase rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all active:scale-95 text-center flex items-center justify-center">
+                            Reset
+                        </a>
+                        @endif
                     </div>
 
                     <div class="w-full md:w-auto md:ml-auto mt-2 md:mt-0">
@@ -75,21 +82,22 @@
                 </form>
             </div>
 
+            <!-- KARTU METRIK -->
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8">
-                
                 <div onclick="toggleDetail('total')" class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all border-l-4 border-l-gray-400 cursor-pointer hover:shadow-md hover:scale-[1.02] hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Total Mahasiswa</p>
                     <h3 class="text-3xl font-black text-gray-800 dark:text-white mt-1">{{ number_format($totalMahasiswa) }}</h3>
-                    <p class="text-[8px] text-gray-400 mt-2 font-bold italic">Klik untuk melihat detail →</p>
+                    <p class="text-[8px] text-gray-400 mt-2 font-bold italic">Klik untuk melihat detail &rarr;</p>
                 </div>
 
-                <div onclick="toggleDetail('lulus')" class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all border-l-4 border-l-blue-500 cursor-pointer hover:shadow-md hover:scale-[1.02] hover:bg-blue-50/50 dark:hover:bg-blue-900/10">
-                    <p class="text-[10px] text-blue-500 dark:text-blue-400 font-bold uppercase tracking-widest">Berhasil Lulus</p>
+                <div onclick="toggleDetail('lulus_terlambat')" class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all border-l-4 border-l-blue-500 cursor-pointer hover:shadow-md hover:scale-[1.02] hover:bg-blue-50/50 dark:hover:bg-blue-900/10">
+                    <p class="text-[10px] text-blue-500 dark:text-blue-400 font-bold uppercase tracking-widest">Berhasil Lulus (Terlambat)</p>
                     <div class="flex items-end justify-between mt-1">
+                        <!-- Perbaikan: Hanya menampilkan yang berhasil lulus tapi tidak tepat waktu -->
                         <h3 class="text-3xl font-black text-blue-500 dark:text-blue-400">{{ number_format($berhasilLulus) }}</h3>
                         <span class="text-[9px] font-black bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 px-2 py-1 rounded-lg">Rata-rata: {{ $rataStudi }} Sem</span>
                     </div>
-                    <p class="text-[8px] text-blue-400/70 mt-2 font-bold italic">Klik untuk melihat detail →</p>
+                    <p class="text-[8px] text-blue-400/70 mt-2 font-bold italic">Klik untuk melihat detail &rarr;</p>
                 </div>
 
                 <div onclick="toggleDetail('tepat')" class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all border-l-4 border-l-green-500 cursor-pointer hover:shadow-md hover:scale-[1.02] hover:bg-green-50/50 dark:hover:bg-green-900/10">
@@ -103,7 +111,7 @@
                             {{ $trendTepat >= 0 ? '↑' : '↓' }} {{ abs(round($trendTepat, 1)) }}%
                         </span>
                     </div>
-                    <p class="text-[8px] text-green-400/70 mt-2 font-bold italic">Klik untuk melihat detail →</p>
+                    <p class="text-[8px] text-green-400/70 mt-2 font-bold italic">Klik untuk melihat detail &rarr;</p>
                 </div>
 
                 <div onclick="toggleDetail('gagal')" class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all border-l-4 border-l-red-500 cursor-pointer hover:shadow-md hover:scale-[1.02] hover:bg-red-50/50 dark:hover:bg-red-900/10">
@@ -115,10 +123,11 @@
                             <span class="text-[10px] font-black text-orange-500">{{ round($persenTerlambatNow, 1) }}%</span>
                         </div>
                     </div>
-                    <p class="text-[8px] text-red-400/70 mt-2 font-bold italic">Klik untuk melihat detail →</p>
+                    <p class="text-[8px] text-red-400/70 mt-2 font-bold italic">Klik untuk melihat detail &rarr;</p>
                 </div>
             </div>
 
+            <!-- PANEL DETAIL -->
             <div id="detailPanel" class="hidden bg-white dark:bg-gray-800 p-6 md:p-8 rounded-[2rem] border border-blue-100 dark:border-blue-900/50 shadow-lg mb-8 transition-all duration-500 relative scroll-mt-6">
                 <div class="flex justify-between items-center mb-6 border-b border-gray-100 dark:border-gray-700 pb-4">
                     <div>
@@ -126,7 +135,9 @@
                         <p class="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em]">Berdasarkan Program Studi</p>
                     </div>
                     <button onclick="closeDetail()" class="p-2 bg-gray-50 dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-900/30 text-gray-400 hover:text-red-500 rounded-xl transition-colors group">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-hover:rotate-90 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-hover:rotate-90 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                     </button>
                 </div>
 
@@ -139,14 +150,15 @@
                             </tr>
                         </thead>
                         <tbody id="detailTableBody">
-                            </tbody>
+                        </tbody>
                     </table>
                 </div>
             </div>
 
+            <!-- AREA GRAFIK -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
                 <div class="lg:col-span-2 bg-white dark:bg-gray-800 p-4 md:p-8 rounded-2xl md:rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm transition-colors">
-                    <h4 class="font-bold text-gray-400 uppercase text-[9px] md:text-[10px] mb-4 md:mb-8 tracking-[0.3em] italic text-center md:text-left">Tren Mahasiswa Lulus</h4>
+                    <h4 class="font-bold text-gray-400 uppercase text-[9px] md:text-[10px] mb-4 md:mb-8 tracking-[0.3em] italic text-center md:text-left">Tren Mahasiswa Lulus per Angkatan</h4>
                     <div class="h-[250px] md:h-[320px] w-full"><canvas id="lineChart"></canvas></div>
                 </div>
                 <div class="bg-white dark:bg-gray-800 p-4 md:p-8 rounded-2xl md:rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col items-center justify-center transition-colors">
@@ -155,6 +167,7 @@
                 </div>
             </div>
 
+            <!-- PROGRES PRODI -->
             <div class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm transition-all">
                 <h2 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-6 italic">Performa Kelulusan Per Prodi</h2>
 
@@ -174,7 +187,7 @@
                             </div>
 
                             <div class="flex gap-4 text-[8px] font-bold text-gray-400 uppercase">
-                                <span>Lulus: {{ $kp->berhasil_lulus }}</span>
+                                <span>Lulus: {{ $kp->tepat_waktu + $kp->tidak_tepat_waktu }}</span>
                                 <span>Tepat: {{ $kp->tepat_waktu }}</span>
                                 <span>Gagal: {{ $kp->tidak_lulus }}</span>
                             </div>
@@ -185,14 +198,15 @@
             </div>
         </div>
 
+        <!-- HIDDEN DATA UNTUK GRAFIK -->
         <div id="chart-data" class="hidden"
-            data-labels='{!! $tren->pluck("tahun_lulus")->toJson() !!}'
+            data-labels='{!! $tren->pluck("angkatan")->toJson() !!}'
             data-total='{!! $tren->pluck("total")->toJson() !!}'
             data-tepat-tren='{!! $tren->pluck("tepat_waktu")->toJson() !!}'
             data-lambat-tren='{!! $tren->pluck("terlambat")->toJson() !!}'
             data-gagal-tren='{!! $tren->pluck("tidak_lulus")->toJson() !!}'
             data-tepat="{{ $lulusTepat }}"
-            data-lambat="{{ $berhasilLulus - $lulusTepat }}"
+            data-lambat="{{ $berhasilLulus }}"
             data-gagal="{{ $tidakLulus }}">
         </div>
     </main>
@@ -210,7 +224,7 @@
                 prodiSelect.innerHTML = '<option value="">Semua Program Studi</option>';
                 if (f && prodiData[f]) {
                     prodiSelect.disabled = false;
-                    prodiSelect.classList.remove('cursor-not-allowed');
+                    prodiSelect.classList.remove('cursor-not-allowed', 'opacity-50');
                     prodiData[f].forEach(p => {
                         const opt = document.createElement('option');
                         opt.value = p.prodi;
@@ -220,7 +234,7 @@
                     });
                 } else {
                     prodiSelect.disabled = true;
-                    prodiSelect.classList.add('cursor-not-allowed');
+                    prodiSelect.classList.add('cursor-not-allowed', 'opacity-50');
                 }
             }
             fakultasSelectBtn.addEventListener('change', updateProdi);
@@ -238,7 +252,7 @@
             const isMobile = window.innerWidth < 768;
             const tickFontSize = isMobile ? 8 : 10;
 
-            // 1. UPDATE LINE CHART (Dengan perbaikan transparansi titik & hover)
+            // 1. UPDATE LINE CHART
             new Chart(document.getElementById('lineChart'), {
                 type: 'line',
                 data: {
@@ -276,7 +290,7 @@
                             pointHoverRadius: 7
                         },
                         {
-                            label: 'Berhasil Lulus (Terlambat)',
+                            label: 'Berhasil Lulus',
                             data: lambatData,
                             borderColor: '#f97316',
                             borderWidth: 3,
@@ -331,14 +345,34 @@
                     scales: {
                         y: {
                             beginAtZero: true,
-                            grid: { color: 'rgba(156, 163, 175, 0.1)' },
-                            border: { display: false },
-                            ticks: { font: { size: tickFontSize, weight: 'bold' }, color: '#9ca3af' }
+                            grid: {
+                                color: 'rgba(156, 163, 175, 0.1)'
+                            },
+                            border: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: tickFontSize,
+                                    weight: 'bold'
+                                },
+                                color: '#9ca3af'
+                            }
                         },
                         x: {
-                            grid: { display: false },
-                            border: { display: false },
-                            ticks: { font: { size: tickFontSize, weight: 'bold' }, color: '#6b7280' }
+                            grid: {
+                                display: false
+                            },
+                            border: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: tickFontSize,
+                                    weight: 'bold'
+                                },
+                                color: '#6b7280'
+                            }
                         }
                     }
                 }
@@ -348,7 +382,7 @@
             new Chart(document.getElementById('pieChart'), {
                 type: 'doughnut',
                 data: {
-                    labels: ['Tepat Waktu', 'Terlambat', 'Tidak Lulus'],
+                    labels: ['Tepat Waktu', 'Berhasil Lulus', 'Tidak Lulus'],
                     datasets: [{
                         data: [
                             parseInt(el.getAttribute('data-tepat')),
@@ -366,7 +400,10 @@
                             position: 'bottom',
                             labels: {
                                 usePointStyle: true,
-                                font: { weight: 'bold', size: tickFontSize }
+                                font: {
+                                    weight: 'bold',
+                                    size: tickFontSize
+                                }
                             }
                         }
                     }
@@ -375,6 +412,7 @@
 
             // EXPORT BUTTON LOGIC
             const btnExport = document.getElementById('btn-export');
+
             function toggleExportButton() {
                 if (fakultasSelectBtn.value !== "") {
                     btnExport.disabled = false;
@@ -402,10 +440,26 @@
             panel.classList.remove('hidden');
 
             const mappingJudul = {
-                'total': { judul: 'Detail: Total Mahasiswa', keyJumlah: 'total_mhs', warnaTeks: 'text-gray-700 dark:text-gray-300' },
-                'lulus': { judul: 'Detail: Berhasil Lulus', keyJumlah: 'berhasil_lulus', warnaTeks: 'text-blue-600 dark:text-blue-400' },
-                'tepat': { judul: 'Detail: Lulus Tepat Waktu', keyJumlah: 'tepat_waktu', warnaTeks: 'text-green-600 dark:text-green-400' },
-                'gagal': { judul: 'Detail: Tidak Lulus / Drop Out', keyJumlah: 'tidak_lulus', warnaTeks: 'text-red-500' }
+                'total': {
+                    judul: 'Detail: Total Mahasiswa',
+                    keyJumlah: 'total_mhs',
+                    warnaTeks: 'text-gray-700 dark:text-gray-300'
+                },
+                'lulus_terlambat': { // Perbaikan di sini
+                    judul: 'Detail: Berhasil Lulus (Terlambat)',
+                    keyJumlah: 'tidak_tepat_waktu', // MURNI HANYA YANG TELAT
+                    warnaTeks: 'text-blue-600 dark:text-blue-400'
+                },
+                'tepat': {
+                    judul: 'Detail: Lulus Tepat Waktu',
+                    keyJumlah: 'tepat_waktu',
+                    warnaTeks: 'text-green-600 dark:text-green-400'
+                },
+                'gagal': {
+                    judul: 'Detail: Tidak Lulus / Drop Out',
+                    keyJumlah: 'tidak_lulus',
+                    warnaTeks: 'text-red-500'
+                }
             };
 
             const config = mappingJudul[kategori];
@@ -414,17 +468,22 @@
 
             // Render isi tabel secara dinamis berdasarkan Prodi
             detailKinerja.forEach(item => {
+                let jumlahTampil = item[config.keyJumlah];
+
                 const tr = document.createElement('tr');
                 tr.className = 'border-b border-gray-50 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors';
-                
+
                 tr.innerHTML = `
                     <td class="p-4 text-xs font-bold text-gray-800 dark:text-gray-200">${item.prodi}</td>
-                    <td class="p-4 text-xs font-black text-right ${config.warnaTeks}">${item.jumlah = item[config.keyJumlah]} Mhs</td>
+                    <td class="p-4 text-xs font-black text-right ${config.warnaTeks}">${jumlahTampil} Mhs</td>
                 `;
                 tbody.appendChild(tr);
             });
 
-            panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            panel.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
         }
 
         function closeDetail() {

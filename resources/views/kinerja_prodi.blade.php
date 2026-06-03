@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id" class="scroll-smooth">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,6 @@
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
-        /* Style tambahan untuk ikon sorting tabel */
         th.sortable:hover { color: #3b82f6; }
     </style>
 </head>
@@ -25,7 +25,7 @@
         <div class="p-4 md:p-8">
             <div class="mb-6">
                 <h1 class="text-xl md:text-2xl font-black text-blue-900 dark:text-blue-400">Kinerja Program Studi</h1>
-                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Komparasi performa kelulusan dan masa studi</p>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Komparasi performa kelulusan dan Kualitas Akademik</p>
             </div>
 
             <div class="mb-8">
@@ -49,11 +49,11 @@
                     </div>
 
                     <div class="flex flex-col w-full md:w-auto">
-                        <label class="text-[9px] font-bold text-gray-400 uppercase mb-1 ml-1 tracking-widest">Angkatan Lulus</label>
-                        <select name="tahun_lulus" class="w-full text-xs font-bold bg-gray-50 dark:bg-gray-700 dark:text-white border-none rounded-xl px-4 py-2.5 md:min-w-[130px] focus:ring-2 focus:ring-blue-900">
+                        <label class="text-[9px] font-bold text-gray-400 uppercase mb-1 ml-1 tracking-widest">Angkatan</label>
+                        <select name="angkatan" class="w-full text-xs font-bold bg-gray-50 dark:bg-gray-700 dark:text-white border-none rounded-xl px-4 py-2.5 md:min-w-[130px] focus:ring-2 focus:ring-blue-900">
                             <option value="">Semua Angkatan</option>
-                            @foreach($listTahun as $t)
-                            <option value="{{ $t }}" {{ $filterTahun == $t ? 'selected' : '' }}>{{ $t }}</option>
+                            @foreach($listAngkatan as $a)
+                            <option value="{{ $a }}" {{ request('angkatan') == $a ? 'selected' : '' }}>{{ $a }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -61,15 +61,6 @@
                     <div class="flex gap-2 w-full md:w-auto">
                         <button type="submit" class="flex-1 md:flex-none px-6 py-2.5 bg-blue-900 dark:bg-blue-700 text-white text-[10px] font-black uppercase rounded-xl hover:bg-blue-800 transition-all shadow-md active:scale-95">Terapkan</button>
                         <a href="{{ route('kinerja.prodi') }}" class="flex-1 md:flex-none px-5 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 text-[10px] font-black uppercase rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all text-center flex items-center justify-center">Reset</a>
-                    </div>
-
-                    <div class="flex gap-2 w-full md:w-auto md:ml-auto">
-                        <button type="button" onclick="handleExport('excel')" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/50 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> Excel
-                        </button>
-                        <button type="button" onclick="handleExport('pdf')" class="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> PDF
-                        </button>
                     </div>
                 </form>
             </div>
@@ -81,8 +72,7 @@
                     </div>
                     <div>
                         <p class="text-[10px] font-bold uppercase tracking-widest text-green-100">Prodi Tepat Waktu Tertinggi</p>
-                        <h3 class="text-xl font-black mt-1">{{ $prodiTerbaik ?? 'Informatika' }}</h3>
-                        <p class="text-xs font-medium text-green-100 mt-1">Lulus tepat waktu mencapai angka yang sangat memuaskan.</p>
+                        <h3 class="text-xl font-black mt-1">{{ $prodiTerbaik }}</h3>
                     </div>
                 </div>
 
@@ -92,20 +82,29 @@
                     </div>
                     <div>
                         <p class="text-[10px] font-bold uppercase tracking-widest text-orange-100">Butuh Perhatian Khusus</p>
-                        <h3 class="text-xl font-black mt-1">{{ $prodiPerhatian ?? 'Manajemen' }}</h3>
-                        <p class="text-xs font-medium text-orange-100 mt-1">Memiliki rasio mahasiswa tidak lulus / terlambat paling tinggi.</p>
+                        <h3 class="text-xl font-black mt-1">{{ $prodiPerhatian }}</h3>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm transition-colors mb-8">
-                <h4 class="font-bold text-gray-400 uppercase text-[10px] mb-8 tracking-[0.3em] italic text-center">Komposisi Kelulusan Per Prodi</h4>
-                <div class="h-[400px] w-full">
-                    <canvas id="prodiGroupedChart"></canvas>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div class="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm transition-colors">
+                    <h4 class="font-bold text-gray-400 uppercase text-[10px] mb-6 tracking-[0.3em] italic text-center">Komposisi Kelulusan Per Prodi</h4>
+                    <div class="h-[300px] w-full"><canvas id="prodiGroupedChart"></canvas></div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm transition-colors flex flex-col items-center">
+                    <h4 class="font-bold text-gray-400 uppercase text-[10px] mb-6 tracking-[0.3em] italic text-center">Distribusi Kualitas Akademik (IPK)</h4>
+                    <div class="h-[250px] w-full max-w-[250px]"><canvas id="ipkChart"></canvas></div>
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden mb-8 transition-colors">
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm transition-colors mb-8">
+                <h4 class="font-bold text-gray-400 uppercase text-[10px] mb-6 tracking-[0.3em] italic text-center">Rata-Rata IPK Per Program Studi</h4>
+                <div class="h-[300px] w-full"><canvas id="ipkBarChart"></canvas></div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden mb-8 transition-colors">
                 <div class="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
                     <h2 class="text-xs font-black text-blue-900 dark:text-blue-300 uppercase">Rincian Data Program Studi</h2>
                     <span class="text-[9px] text-gray-400 font-bold bg-gray-50 dark:bg-gray-700 px-2 py-1 rounded">Klik judul tabel untuk mengurutkan</span>
@@ -133,18 +132,36 @@
                                 <td class="p-5 text-center font-black text-orange-500 dark:text-orange-400">{{ $kp->rata_studi ?? 0 }} Sem</td>
                             </tr>
                             @empty
-                            <tr><td colspan="6" class="p-12 text-center text-xs font-bold text-gray-400 italic">Data Tidak Ditemukan</td></tr>
+                            <tr>
+                                <td colspan="6" class="p-12 text-center text-xs font-bold text-gray-400 italic">Data Tidak Ditemukan</td>
+                            </tr>
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+                <div class="p-6 bg-gray-50/50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700">
+                    {{ $kinerjaProdi->withQueryString()->links() }}
                 </div>
             </div>
         </div>
     </main>
 
+    <div id="chartDataContainer" class="hidden"
+        data-prodi='{!! json_encode($kinerjaProdiChart->pluck("prodi")) !!}'
+        data-tepat='{!! json_encode($kinerjaProdiChart->pluck("tepat_waktu")) !!}'
+        data-lambat='{!! json_encode($kinerjaProdiChart->pluck("berhasil_lulus")) !!}'
+        data-gagal='{!! json_encode($kinerjaProdiChart->pluck("tidak_lulus")) !!}'
+        data-rataipk='{!! json_encode($kinerjaProdiChart->pluck("rata_ipk")) !!}'
+        
+        data-cumlaude="{{ $distribusiIpk->cumlaude ?? 0 }}"
+        data-sangat="{{ $distribusiIpk->sangat_memuaskan ?? 0 }}"
+        data-memuaskan="{{ $distribusiIpk->memuaskan ?? 0 }}"
+        data-cukup="{{ $distribusiIpk->cukup ?? 0 }}">
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 1. DEPENDENT DROPDOWN LOGIC
+            // DEPENDENT DROPDOWN
             const prodiData = {!! json_encode($prodiPerFakultas) !!};
             const fakultasSelect = document.getElementById('fakultas');
             const prodiSelect = document.getElementById('prodi');
@@ -153,7 +170,6 @@
             function updateProdiDropdown() {
                 const fakultas = fakultasSelect.value;
                 prodiSelect.innerHTML = '<option value="">Semua Program Studi</option>';
-                
                 if (fakultas && prodiData[fakultas]) {
                     prodiSelect.disabled = false;
                     prodiSelect.classList.remove('cursor-not-allowed', 'opacity-50');
@@ -169,94 +185,95 @@
                     prodiSelect.classList.add('cursor-not-allowed', 'opacity-50');
                 }
             }
-
             fakultasSelect.addEventListener('change', updateProdiDropdown);
             updateProdiDropdown();
 
-            // 2. CHART LOGIC
-            const ctx = document.getElementById('prodiGroupedChart').getContext('2d');
+            // AMBIL DATA DARI HIDDEN DIV
+            const container = document.getElementById('chartDataContainer');
+            const labelsProdi = JSON.parse(container.getAttribute('data-prodi'));
+            const dataTepat = JSON.parse(container.getAttribute('data-tepat'));
+            const dataLambat = JSON.parse(container.getAttribute('data-lambat'));
+            const dataGagal = JSON.parse(container.getAttribute('data-gagal'));
+            const dataRataIpk = JSON.parse(container.getAttribute('data-rataipk'));
+
             Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
-            
-            new Chart(ctx, {
+            const commonOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#9ca3af', usePointStyle: true, font: { weight: 'bold' } } } } };
+
+            // 1. CHART KOMPOSISI LULUSAN
+            new Chart(document.getElementById('prodiGroupedChart').getContext('2d'), {
                 type: 'bar',
                 data: {
-                    labels: {!! json_encode($kinerjaProdi->pluck('prodi')) !!},
+                    labels: labelsProdi,
                     datasets: [
-                        { label: 'Berhasil Lulus', data: {!! json_encode($kinerjaProdi->pluck('berhasil_lulus')) !!}, backgroundColor: '#3b82f6', borderRadius: 5 },
-                        { label: 'Tepat Waktu', data: {!! json_encode($kinerjaProdi->pluck('tepat_waktu')) !!}, backgroundColor: '#22c55e', borderRadius: 5 },
-                        { label: 'Gagal', data: {!! json_encode($kinerjaProdi->pluck('tidak_lulus')) !!}, backgroundColor: '#ef4444', borderRadius: 5 }
+                        { label: 'Tepat Waktu', data: dataTepat, backgroundColor: '#22c55e', borderRadius: 4 },
+                        { label: 'Lulus Terlambat', data: dataLambat, backgroundColor: '#f97316', borderRadius: 4 },
+                        { label: 'Gagal / DO', data: dataGagal, backgroundColor: '#ef4444', borderRadius: 4 }
                     ]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
+                    ...commonOptions,
                     scales: {
-                        y: { beginAtZero: true, grid: { color: 'rgba(156, 163, 175, 0.1)' }, ticks: { color: '#9ca3af', font: { weight: 'bold' } } },
-                        x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { weight: 'bold' } } }
-                    },
-                    plugins: {
-                        legend: { labels: { color: '#9ca3af', usePointStyle: true, font: { weight: 'bold' } }, position: 'bottom' }
+                        y: { beginAtZero: true, grid: { color: 'rgba(156, 163, 175, 0.1)' }, ticks: { color: '#9ca3af' } },
+                        x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 10 } } }
                     }
                 }
             });
+
+            // 2. CHART RATA-RATA IPK
+            new Chart(document.getElementById('ipkBarChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: labelsProdi,
+                    datasets: [{ label: 'Rata-rata IPK', data: dataRataIpk, backgroundColor: '#8b5cf6', borderRadius: 6 }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        y: { min: 2.0, max: 4.0, grid: { color: 'rgba(156, 163, 175, 0.1)' }, ticks: { color: '#9ca3af' } },
+                        x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 10 } } }
+                    }
+                }
+            });
+
+            // 3. CHART DISTRIBUSI KUALITAS AKADEMIK (DOUGHNUT)
+            new Chart(document.getElementById('ipkChart').getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Cumlaude (>3.50)', 'Sangat Memuaskan (3.00-3.50)', 'Memuaskan (2.76-2.99)', 'Cukup (<2.76)'],
+                    datasets: [{
+                        data: [
+                            parseInt(container.getAttribute('data-cumlaude')),
+                            parseInt(container.getAttribute('data-sangat')),
+                            parseInt(container.getAttribute('data-memuaskan')),
+                            parseInt(container.getAttribute('data-cukup'))
+                        ],
+                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { cutout: '65%', plugins: { legend: { position: 'bottom', labels: { color: '#9ca3af', usePointStyle: true, font: { size: 10 } } } } }
+            });
         });
 
-        // 3. FITUR SORTING TABEL
+        // FUNGSI SORTING TABEL
         function sortTable(n) {
             var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
             table = document.getElementById("kinerjaTable");
-            switching = true;
-            dir = "desc"; // Set awal urutan ke menurun (terbesar ke terkecil)
-
+            switching = true; dir = "desc";
             while (switching) {
-                switching = false;
-                rows = table.rows;
-                
+                switching = false; rows = table.rows;
                 for (i = 1; i < (rows.length - 1); i++) {
                     shouldSwitch = false;
-                    x = rows[i].getElementsByTagName("TD")[n];
-                    y = rows[i + 1].getElementsByTagName("TD")[n];
-                    
-                    // Ekstrak angka murni (hilangkan "Sem", koma, dll)
-                    let valX = x.innerText.replace(/[^0-9.-]+/g,"");
-                    let valY = y.innerText.replace(/[^0-9.-]+/g,"");
-                    
-                    // Kalau kolom pertama (Nama Prodi), bandingkan sebagai huruf
-                    if (n === 0) {
-                        valX = x.innerText.toLowerCase();
-                        valY = y.innerText.toLowerCase();
-                    } else {
-                        // Bandingkan sebagai angka
-                        valX = parseFloat(valX) || 0;
-                        valY = parseFloat(valY) || 0;
-                    }
-
-                    if (dir == "asc") {
-                        if (valX > valY) { shouldSwitch = true; break; }
-                    } else if (dir == "desc") {
-                        if (valX < valY) { shouldSwitch = true; break; }
-                    }
+                    x = rows[i].getElementsByTagName("TD")[n]; y = rows[i + 1].getElementsByTagName("TD")[n];
+                    let valX = x.innerText.replace(/[^0-9.-]+/g, ""); let valY = y.innerText.replace(/[^0-9.-]+/g, "");
+                    if (n === 0) { valX = x.innerText.toLowerCase(); valY = y.innerText.toLowerCase(); } 
+                    else { valX = parseFloat(valX) || 0; valY = parseFloat(valY) || 0; }
+                    if (dir == "asc") { if (valX > valY) { shouldSwitch = true; break; } } 
+                    else if (dir == "desc") { if (valX < valY) { shouldSwitch = true; break; } }
                 }
-                if (shouldSwitch) {
-                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-                    switching = true;
-                    switchcount ++;
-                } else {
-                    if (switchcount == 0 && dir == "desc") {
-                        dir = "asc";
-                        switching = true;
-                    }
-                }
+                if (shouldSwitch) { rows[i].parentNode.insertBefore(rows[i + 1], rows[i]); switching = true; switchcount++; } 
+                else { if (switchcount == 0 && dir == "desc") { dir = "asc"; switching = true; } }
             }
-        }
-
-        // 4. FUNGSI EXPORT
-        function handleExport(tipe) {
-            const form = document.querySelector('form');
-            const params = new URLSearchParams(new FormData(form)).toString();
-            // Nanti arahkan route ini di web.php ke fungsi Controller yang sesuai
-            const url = tipe === 'excel' ? "{{ route('kinerja.export.excel') }}" : "{{ route('kinerja.export.pdf') }}";
-            window.location.href = url + "?" + params;
         }
     </script>
 </body>

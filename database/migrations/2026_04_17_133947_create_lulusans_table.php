@@ -16,8 +16,10 @@ return new class extends Migration
             $table->string('nim')->unique();
             $table->string('nama');
             $table->string('prodi');
+            $table->integer('angkatan')->nullable();
             $table->string('fakultas');
             $table->integer('tahun_lulus');
+            $table->string('jenis_daftar')->default('Peserta didik baru')->nullable();
             $table->decimal('ipk', 3, 2);
             $table->integer('lama_studi'); // dalam semester
             $table->timestamps();
