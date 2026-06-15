@@ -8,13 +8,13 @@ return new class extends Migration
 {
     public function up()
     {
-        // Menambahkan kolom user_id dan ip_address di tabel audit_logs
+        // Tambah user_id dan ip_address di tabel audit_logs
         Schema::table('audit_logs', function (Blueprint $table) {
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('ip_address', 45)->nullable();
         });
 
-        // Menambahkan kolom created_by di tabel lulusans
+        // Tambah created_by di tabel lulusans
         Schema::table('lulusans', function (Blueprint $table) {
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
         });

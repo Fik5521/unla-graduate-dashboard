@@ -109,19 +109,21 @@
 
                             <tr class="border-b border-gray-50 dark:border-gray-700/50 transition-all {{ $rowClass }}">
                                 <td class="p-5 text-xs font-bold text-gray-400 dark:text-gray-500">{{ $mahasiswas->firstItem() + $index }}</td>
+
                                 <td class="p-5">
-                                    <p class="text-xs font-black text-blue-900 dark:text-blue-400 uppercase">{{ $mhs->nama }}</p>
+                                    <p class="text-xs font-black uppercase {{ $isLulus ? 'text-blue-900 dark:text-blue-400' : 'text-red-500 dark:text-red-400' }}">
+                                        {{ $mhs->nama }}
+                                    </p>
+
                                     <p class="text-[9px] text-gray-400 dark:text-gray-400 font-bold uppercase mt-0.5">
                                         {{ $mhs->prodi }} - Angkatan {{ $mhs->angkatan ?? 'N/A' }}
                                     </p>
                                 </td>
+
                                 <td class="p-5 text-xs font-bold text-gray-600 dark:text-gray-300">{{ $mhs->nim }}</td>
 
                                 <td class="p-5 text-center">
-                                    <span class="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase inline-block
-                                        {{ $isLulus 
-                                            ? 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400' 
-                                            : 'bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400' }}">
+                                    <span class="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase inline-block {{ $isLulus ? 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400' }}">
                                         {{ $mhs->status }}
                                     </span>
 

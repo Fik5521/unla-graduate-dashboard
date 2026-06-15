@@ -29,6 +29,8 @@ Route::middleware('guest')->group(function () {
 // ==========================================
 Route::middleware('auth')->group(function () {
     Route::get('/pengaturan', [DashboardController::class, 'settings'])->name('settings');
+    Route::put('/settings/profile', [DashboardController::class, 'updateProfile'])->name('settings.update.profile');
+    Route::put('/settings/password', [DashboardController::class, 'updatePassword'])->name('settings.update.password');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-    Route::post('/import-json', [DashboardController::class, 'importJson'])->name('import.json');
+    Route::post('/import-data', [DashboardController::class, 'importData'])->name('import.data');
 });

@@ -65,28 +65,6 @@
                 </form>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8">
-                <div class="bg-gradient-to-br from-green-400 to-green-600 p-6 rounded-3xl shadow-md text-white flex items-center gap-5">
-                    <div class="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
-                    </div>
-                    <div>
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-green-100">Prodi Tepat Waktu Tertinggi</p>
-                        <h3 class="text-xl font-black mt-1">{{ $prodiTerbaik }}</h3>
-                    </div>
-                </div>
-
-                <div class="bg-gradient-to-br from-orange-400 to-red-500 p-6 rounded-3xl shadow-md text-white flex items-center gap-5">
-                    <div class="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                    </div>
-                    <div>
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-orange-100">Butuh Perhatian Khusus</p>
-                        <h3 class="text-xl font-black mt-1">{{ $prodiPerhatian }}</h3>
-                    </div>
-                </div>
-            </div>
-
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 <div class="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm transition-colors">
                     <h4 class="font-bold text-gray-400 uppercase text-[10px] mb-6 tracking-[0.3em] italic text-center">Komposisi Kelulusan Per Prodi</h4>
@@ -115,7 +93,7 @@
                             <tr class="border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 cursor-pointer select-none">
                                 <th onclick="sortTable(0)" class="sortable p-5 text-[10px] font-black text-gray-400 uppercase transition-colors">Program Studi ⇕</th>
                                 <th onclick="sortTable(1)" class="sortable p-5 text-[10px] font-black text-gray-400 uppercase text-center transition-colors">Total Mhs ⇕</th>
-                                <th onclick="sortTable(2)" class="sortable p-5 text-[10px] font-black text-gray-400 uppercase text-center transition-colors">Lulus ⇕</th>
+                                <th onclick="sortTable(2)" class="sortable p-5 text-[10px] font-black text-gray-400 uppercase text-center transition-colors">Berhasil Lulus ⇕</th>
                                 <th onclick="sortTable(3)" class="sortable p-5 text-[10px] font-black text-gray-400 uppercase text-center transition-colors">Tepat Waktu ⇕</th>
                                 <th onclick="sortTable(4)" class="sortable p-5 text-[10px] font-black text-gray-400 uppercase text-center transition-colors">Gagal ⇕</th>
                                 <th onclick="sortTable(5)" class="sortable p-5 text-[10px] font-black text-gray-400 uppercase text-center transition-colors">Avg Studi ⇕</th>
@@ -206,7 +184,7 @@
                     labels: labelsProdi,
                     datasets: [
                         { label: 'Tepat Waktu', data: dataTepat, backgroundColor: '#22c55e', borderRadius: 4 },
-                        { label: 'Lulus Terlambat', data: dataLambat, backgroundColor: '#f97316', borderRadius: 4 },
+                        { label: 'Berhasil Lulus', data: dataLambat, backgroundColor: '#f97316', borderRadius: 4 },
                         { label: 'Gagal / DO', data: dataGagal, backgroundColor: '#ef4444', borderRadius: 4 }
                     ]
                 },

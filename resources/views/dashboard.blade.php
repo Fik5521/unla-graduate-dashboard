@@ -28,16 +28,14 @@
         @include('partials.header')
 
         <div class="p-4 md:p-8">
-            <!-- TAHAP FILTER -->
             <div class="mb-8">
                 <form action="{{ route('dashboard') }}" method="GET" class="flex flex-col md:flex-row flex-wrap items-start md:items-end gap-3 md:gap-4 bg-white dark:bg-gray-800 p-4 md:p-5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm transition-colors">
 
                     <div class="flex flex-col w-full md:w-auto">
                         <label class="text-[9px] font-bold text-gray-400 uppercase mb-1 ml-1 tracking-widest">Fakultas</label>
                         <select name="fakultas" id="fakultas" class="w-full text-xs font-bold bg-gray-50 dark:bg-gray-700 dark:text-white border-none rounded-xl px-4 py-3 md:py-2.5 md:min-w-[180px] focus:ring-2 focus:ring-blue-900 outline-none transition-all">
-                            <option value="">Semua Fakultas</option>
                             @foreach($listFakultas as $f)
-                            <option value="{{ $f }}" {{ request('fakultas') == $f ? 'selected' : '' }}>{{ $f }}</option>
+                            <option value="{{ $f }}" {{ $filterFakultas == $f ? 'selected' : '' }}>{{ $f }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -45,7 +43,7 @@
                     <div class="flex flex-col w-full md:w-auto">
                         <label class="text-[9px] font-bold text-gray-400 uppercase mb-1 ml-1 tracking-widest">Program Studi</label>
                         <select name="prodi" id="prodi" disabled class="w-full text-xs font-bold bg-gray-50 dark:bg-gray-700 dark:text-white border-none rounded-xl px-4 py-3 md:py-2.5 md:min-w-[180px] focus:ring-2 focus:ring-blue-900 disabled:opacity-50 cursor-not-allowed outline-none transition-all">
-                            <option value="">Pilih Fakultas Dulu</option>
+                            <option value="">Semua Program Studi</option>
                         </select>
                     </div>
 
@@ -82,7 +80,6 @@
                 </form>
             </div>
 
-            <!-- KARTU METRIK -->
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8">
                 <div onclick="toggleDetail('total')" class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all border-l-4 border-l-gray-400 cursor-pointer hover:shadow-md hover:scale-[1.02] hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Total Mahasiswa</p>
@@ -93,9 +90,10 @@
                 <div onclick="toggleDetail('lulus_terlambat')" class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all border-l-4 border-l-blue-500 cursor-pointer hover:shadow-md hover:scale-[1.02] hover:bg-blue-50/50 dark:hover:bg-blue-900/10">
                     <p class="text-[10px] text-blue-500 dark:text-blue-400 font-bold uppercase tracking-widest">Berhasil Lulus (Terlambat)</p>
                     <div class="flex items-end justify-between mt-1">
-                        <!-- Perbaikan: Hanya menampilkan yang berhasil lulus tapi tidak tepat waktu -->
-                        <h3 class="text-3xl font-black text-blue-500 dark:text-blue-400">{{ number_format($berhasilLulus) }}</h3>
-                        <span class="text-[9px] font-black bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 px-2 py-1 rounded-lg">Rata-rata: {{ $rataStudi }} Sem</span>
+                        <div class="flex items-end gap-2">
+                            <h3 class="text-3xl font-black text-blue-500 dark:text-blue-400">{{ number_format($berhasilLulus) }}</h3>
+                            <span class="text-[10px] font-black text-blue-600 dark:text-blue-400 mb-1.5" title="{{ $persenTerlambatNow }}% dari total mahasiswa">{{ $persenTerlambatNow }}%</span>
+                        </div>
                     </div>
                     <p class="text-[8px] text-blue-400/70 mt-2 font-bold italic">Klik untuk melihat detail &rarr;</p>
                 </div>
@@ -105,7 +103,7 @@
                     <div class="flex items-end justify-between mt-1">
                         <div class="flex items-end gap-2">
                             <h3 class="text-3xl font-black text-green-500">{{ number_format($lulusTepat) }}</h3>
-                            <span class="text-[10px] font-black text-green-600 dark:text-green-400 mb-1.5">{{ round($persenTepatNow, 1) }}%</span>
+                            <span class="text-[10px] font-black text-green-600 dark:text-green-400 mb-1.5" title="{{ $persenTepatNow }}% dari total mahasiswa">{{ $persenTepatNow }}%</span>
                         </div>
                         <span class="text-[8px] font-black px-1.5 py-0.5 rounded-md mb-1.5 {{ $trendTepat >= 0 ? 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400' }}">
                             {{ $trendTepat >= 0 ? '↑' : '↓' }} {{ abs(round($trendTepat, 1)) }}%
@@ -117,17 +115,15 @@
                 <div onclick="toggleDetail('gagal')" class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all border-l-4 border-l-red-500 cursor-pointer hover:shadow-md hover:scale-[1.02] hover:bg-red-50/50 dark:hover:bg-red-900/10">
                     <p class="text-[10px] text-red-500 font-bold uppercase tracking-widest">Tidak Lulus</p>
                     <div class="flex items-end justify-between mt-1">
-                        <h3 class="text-3xl font-black text-red-500">{{ number_format($tidakLulus) }}</h3>
-                        <div class="flex flex-col items-end mb-1">
-                            <span class="text-[8px] font-bold text-gray-400 uppercase tracking-tighter">Yg Lulus Terlambat:</span>
-                            <span class="text-[10px] font-black text-orange-500">{{ round($persenTerlambatNow, 1) }}%</span>
+                        <div class="flex items-end gap-2">
+                            <h3 class="text-3xl font-black text-red-500">{{ number_format($tidakLulus) }}</h3>
+                            <span class="text-[10px] font-black text-red-600 dark:text-red-400 mb-1.5" title="{{ $persenGagalNow }}% dari total mahasiswa">{{ $persenGagalNow }}%</span>
                         </div>
                     </div>
                     <p class="text-[8px] text-red-400/70 mt-2 font-bold italic">Klik untuk melihat detail &rarr;</p>
                 </div>
             </div>
 
-            <!-- PANEL DETAIL -->
             <div id="detailPanel" class="hidden bg-white dark:bg-gray-800 p-6 md:p-8 rounded-[2rem] border border-blue-100 dark:border-blue-900/50 shadow-lg mb-8 transition-all duration-500 relative scroll-mt-6">
                 <div class="flex justify-between items-center mb-6 border-b border-gray-100 dark:border-gray-700 pb-4">
                     <div>
@@ -155,7 +151,6 @@
                 </div>
             </div>
 
-            <!-- AREA GRAFIK -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
                 <div class="lg:col-span-2 bg-white dark:bg-gray-800 p-4 md:p-8 rounded-2xl md:rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm transition-colors">
                     <h4 class="font-bold text-gray-400 uppercase text-[9px] md:text-[10px] mb-4 md:mb-8 tracking-[0.3em] italic text-center md:text-left">Tren Mahasiswa Lulus per Angkatan</h4>
@@ -167,7 +162,6 @@
                 </div>
             </div>
 
-            <!-- PROGRES PRODI -->
             <div class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-[2rem] border border-gray-100 dark:border-gray-700 shadow-sm transition-all">
                 <h2 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-6 italic">Performa Kelulusan Per Prodi</h2>
 
@@ -198,7 +192,6 @@
             </div>
         </div>
 
-        <!-- HIDDEN DATA UNTUK GRAFIK -->
         <div id="chart-data" class="hidden"
             data-labels='{!! $tren->pluck("angkatan")->toJson() !!}'
             data-total='{!! $tren->pluck("total")->toJson() !!}'
@@ -414,6 +407,7 @@
             const btnExport = document.getElementById('btn-export');
 
             function toggleExportButton() {
+                // Sekarang karena tidak ada 'Semua Fakultas', valuenya otomatis tidak kosong
                 if (fakultasSelectBtn.value !== "") {
                     btnExport.disabled = false;
                     btnExport.classList.remove('bg-gray-200', 'text-gray-400', 'dark:bg-gray-700', 'cursor-not-allowed');
@@ -425,7 +419,7 @@
                 }
             }
             fakultasSelectBtn.addEventListener('change', toggleExportButton);
-            toggleExportButton();
+            toggleExportButton(); // Jalankan saat pertama load
         });
 
         // ============================================
@@ -445,9 +439,9 @@
                     keyJumlah: 'total_mhs',
                     warnaTeks: 'text-gray-700 dark:text-gray-300'
                 },
-                'lulus_terlambat': { // Perbaikan di sini
+                'lulus_terlambat': {
                     judul: 'Detail: Berhasil Lulus (Terlambat)',
-                    keyJumlah: 'tidak_tepat_waktu', // MURNI HANYA YANG TELAT
+                    keyJumlah: 'tidak_tepat_waktu',
                     warnaTeks: 'text-blue-600 dark:text-blue-400'
                 },
                 'tepat': {
@@ -466,7 +460,6 @@
             title.innerText = config.judul;
             tbody.innerHTML = '';
 
-            // Render isi tabel secara dinamis berdasarkan Prodi
             detailKinerja.forEach(item => {
                 let jumlahTampil = item[config.keyJumlah];
 

@@ -9,12 +9,12 @@ class AuditLog extends Model
 {
     use HasFactory;
 
-    // Tabel yang digunakan (opsional, jika nama tabelmu 'audit_logs')
-    protected $table = 'audit_logs';
+    // Izinkan semua kolom diisi secara otomatis
+    protected $guarded = ['id'];
 
-    // WAJIB ADA: Kolom yang diizinkan untuk diisi secara otomatis
-    protected $fillable = [
-        'aksi',
-        'keterangan',
-    ];
+    // Relasi ke User
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }
