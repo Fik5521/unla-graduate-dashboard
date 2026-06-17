@@ -145,6 +145,17 @@
                             @csrf
                         </form>
                     </div>
+
+                    <div class="bg-blue-50/50 dark:bg-blue-900/10 p-8 rounded-[2rem] border border-blue-100 dark:border-blue-900/50 shadow-sm transition-colors">
+                        <h2 class="text-lg font-black text-blue-900 dark:text-blue-400 uppercase tracking-widest mb-4">Pusat Bantuan</h2>
+                        <p class="text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase mb-6">Panduan fitur sistem UNLA Graduate</p>
+                        <button type="button" onclick="openHelpModal()" class="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-900 dark:bg-blue-700 text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-blue-800 transition-all active:scale-95 shadow-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Lihat Panduan
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -199,7 +210,92 @@
             </div>
         </div>
     </main>
+    <div id="helpModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" onclick="closeHelpModal()"></div>
 
+        <div id="helpCard" class="relative bg-white dark:bg-gray-800 w-full max-w-2xl max-h-[90vh] overflow-y-auto hide-scrollbar rounded-[2rem] shadow-2xl p-6 md:p-8 transform scale-95 opacity-0 transition-all duration-300 ease-out border border-gray-100 dark:border-gray-700">
+
+            <button onclick="closeHelpModal()" class="absolute top-6 right-6 p-2 text-gray-400 hover:text-red-500 bg-gray-50 dark:bg-gray-700 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition-colors active:scale-95">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <div class="mb-8 pr-12">
+                <h2 class="text-2xl font-black text-blue-900 dark:text-blue-400 uppercase tracking-tighter">Panduan Sistem</h2>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Penjelasan Fitur Utama UNLA Graduate</p>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex flex-col sm:flex-row gap-4 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 hover:bg-white dark:hover:bg-gray-800 transition-colors shadow-sm hover:shadow-md group">
+                    <div class="flex-shrink-0 p-4 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-xl h-fit w-fit group-hover:scale-110 transition-transform">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-black text-gray-800 dark:text-gray-200 uppercase tracking-widest mb-1.5">Dashboard</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed font-medium">Pusat ringkasan metrik kelulusan secara keseluruhan. Anda dapat melihat total mahasiswa, jumlah yang lulus tepat waktu, lulus lambat, angka *drop out*, serta grafik tren kelulusan dari waktu ke waktu berdasarkan filter yang dipilih.</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-4 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 hover:bg-white dark:hover:bg-gray-800 transition-colors shadow-sm hover:shadow-md group">
+                    <div class="flex-shrink-0 p-4 bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 rounded-xl h-fit w-fit group-hover:scale-110 transition-transform">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-black text-gray-800 dark:text-gray-200 uppercase tracking-widest mb-1.5">Data Mahasiswa</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed font-medium">Tabel rincian setiap individu mahasiswa. Di sini Anda bisa mencari mahasiswa berdasarkan Nama atau NIM, serta melihat detail lama studi, IPK, dan status spesifik kelulusan mereka (contoh: Pindahan / Mengundurkan Diri).</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-4 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 hover:bg-white dark:hover:bg-gray-800 transition-colors shadow-sm hover:shadow-md group">
+                    <div class="flex-shrink-0 p-4 bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 rounded-xl h-fit w-fit group-hover:scale-110 transition-transform">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-black text-gray-800 dark:text-gray-200 uppercase tracking-widest mb-1.5">Kinerja Prodi</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed font-medium">Analisis mendalam mengenai performa masing-masing Program Studi. Anda dapat melihat komparasi rasio kelulusan, mengetahui rata-rata waktu studi per prodi, distribusi predikat IPK (Cumlaude, Memuaskan), serta mengekspor data ke dalam Excel atau PDF.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function openHelpModal() {
+            const modal = document.getElementById('helpModal');
+            const card = document.getElementById('helpCard');
+
+            // Tampilkan container utama
+            modal.classList.remove('hidden');
+
+            // Sedikit delay agar transisi scale/opacity terlihat
+            setTimeout(() => {
+                card.classList.remove('scale-95', 'opacity-0');
+                card.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeHelpModal() {
+            const modal = document.getElementById('helpModal');
+            const card = document.getElementById('helpCard');
+
+            // Animasi mengecil dan memudar
+            card.classList.remove('scale-100', 'opacity-100');
+            card.classList.add('scale-95', 'opacity-0');
+
+            // Tunggu animasi beres baru disembunyikan total
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+    </script>
     <script>
         function confirmLogout() {
             Swal.fire({

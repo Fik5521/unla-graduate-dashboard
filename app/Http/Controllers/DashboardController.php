@@ -60,7 +60,7 @@ class DashboardController extends Controller
         $persenGagalNow = ($totalMahasiswa > 0) ? round(($tidakLulus / $totalMahasiswa) * 100, 1) : 0;
 
         // --- KINERJA PRODI ---
-        $kinerjaProdi = (clone $baseQuery)->select(
+        $kinerjaProdi = (clone $queryNow)->select(
             'prodi',
             DB::raw('COUNT(id) as total_mhs'),
             DB::raw('COUNT(CASE WHEN status = "Lulus" AND ((fakultas = "Pascasarjana" AND lama_studi <= 5) OR (fakultas != "Pascasarjana" AND lama_studi <= 9)) THEN 1 END) as tepat_waktu'),

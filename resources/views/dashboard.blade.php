@@ -81,47 +81,105 @@
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8">
-                <div onclick="toggleDetail('total')" class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all border-l-4 border-l-gray-400 cursor-pointer hover:shadow-md hover:scale-[1.02] hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Total Mahasiswa</p>
+
+                <!-- KARTU: Total Mahasiswa -->
+                <div onclick="toggleDetail('total')" class="group/card relative bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all border-l-4 border-l-gray-400 cursor-pointer hover:shadow-md hover:scale-[1.02] hover:bg-gray-50 dark:hover:bg-gray-700/50 z-10 hover:z-20">
+                    <div class="flex justify-between items-start">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Total Mahasiswa</p>
+                        <!-- Ikon Info & Tooltip (Hover Group) -->
+                        <div class="relative flex items-center justify-center group/tooltip">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 group-hover/tooltip:text-gray-600 dark:group-hover/tooltip:text-gray-200 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <!-- Tooltip Box -->
+                            <div class="absolute bottom-full right-0 mb-2 w-48 p-2.5 bg-gray-900 text-white text-[9px] font-medium rounded-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 shadow-xl leading-relaxed">
+                                Total keseluruhan data mahasiswa yang ada pada sistem sesuai dengan filter fakultas, prodi, dan angkatan yang dipilih.
+                                <div class="absolute top-full right-1.5 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                            </div>
+                        </div>
+                    </div>
                     <h3 class="text-3xl font-black text-gray-800 dark:text-white mt-1">{{ number_format($totalMahasiswa) }}</h3>
                     <p class="text-[8px] text-gray-400 mt-2 font-bold italic">Klik untuk melihat detail &rarr;</p>
                 </div>
 
-                <div onclick="toggleDetail('lulus_terlambat')" class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all border-l-4 border-l-blue-500 cursor-pointer hover:shadow-md hover:scale-[1.02] hover:bg-blue-50/50 dark:hover:bg-blue-900/10">
-                    <p class="text-[10px] text-blue-500 dark:text-blue-400 font-bold uppercase tracking-widest">Berhasil Lulus (Terlambat)</p>
+                <!-- KARTU: Berhasil Lulus (Terlambat) -->
+                <div onclick="toggleDetail('lulus_terlambat')" class="group/card relative bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all border-l-4 border-l-blue-500 cursor-pointer hover:shadow-md hover:scale-[1.02] hover:bg-blue-50/50 dark:hover:bg-blue-900/10 z-10 hover:z-20">
+                    <div class="flex justify-between items-start">
+                        <p class="text-[10px] text-blue-500 dark:text-blue-400 font-bold uppercase tracking-widest">Berhasil Lulus (Terlambat)</p>
+                        <!-- Ikon Info & Tooltip -->
+                        <div class="relative flex items-center justify-center group/tooltip">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 group-hover/tooltip:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <!-- Tooltip Box -->
+                            <div class="absolute bottom-full right-0 mb-2 w-52 p-2.5 bg-gray-900 text-white text-[9px] font-medium rounded-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 shadow-xl leading-relaxed">
+                                Mahasiswa yang berhasil lulus, namun masa studinya melebihi batas ideal (contoh: S1 melebihi 9 Semester).
+                                <div class="absolute top-full right-1.5 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="flex items-end justify-between mt-1">
                         <div class="flex items-end gap-2">
                             <h3 class="text-3xl font-black text-blue-500 dark:text-blue-400">{{ number_format($berhasilLulus) }}</h3>
-                            <span class="text-[10px] font-black text-blue-600 dark:text-blue-400 mb-1.5" title="{{ $persenTerlambatNow }}% dari total mahasiswa">{{ $persenTerlambatNow }}%</span>
+                            <span class="text-[10px] font-black text-blue-600 dark:text-blue-400 mb-1.5" title="{{ $persenTerlambatNow ?? 0 }}% dari total mahasiswa">{{ $persenTerlambatNow ?? 0 }}%</span>
                         </div>
                     </div>
                     <p class="text-[8px] text-blue-400/70 mt-2 font-bold italic">Klik untuk melihat detail &rarr;</p>
                 </div>
 
-                <div onclick="toggleDetail('tepat')" class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all border-l-4 border-l-green-500 cursor-pointer hover:shadow-md hover:scale-[1.02] hover:bg-green-50/50 dark:hover:bg-green-900/10">
-                    <p class="text-[10px] text-green-500 font-bold uppercase tracking-widest">Lulus Tepat Waktu</p>
+                <!-- KARTU: Lulus Tepat Waktu -->
+                <div onclick="toggleDetail('tepat')" class="group/card relative bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all border-l-4 border-l-green-500 cursor-pointer hover:shadow-md hover:scale-[1.02] hover:bg-green-50/50 dark:hover:bg-green-900/10 z-10 hover:z-20">
+                    <div class="flex justify-between items-start">
+                        <p class="text-[10px] text-green-500 font-bold uppercase tracking-widest">Lulus Tepat Waktu</p>
+                        <!-- Ikon Info & Tooltip -->
+                        <div class="relative flex items-center justify-center group/tooltip">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 group-hover/tooltip:text-green-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <!-- Tooltip Box -->
+                            <div class="absolute bottom-full right-0 mb-2 w-52 p-2.5 bg-gray-900 text-white text-[9px] font-medium rounded-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 shadow-xl leading-relaxed">
+                                Mahasiswa berprestasi yang berhasil menyelesaikan studi sesuai batas ideal (contoh: S1 selesai dalam 7-9 Semester).
+                                <div class="absolute top-full right-1.5 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="flex items-end justify-between mt-1">
                         <div class="flex items-end gap-2">
                             <h3 class="text-3xl font-black text-green-500">{{ number_format($lulusTepat) }}</h3>
-                            <span class="text-[10px] font-black text-green-600 dark:text-green-400 mb-1.5" title="{{ $persenTepatNow }}% dari total mahasiswa">{{ $persenTepatNow }}%</span>
+                            <span class="text-[10px] font-black text-green-600 dark:text-green-400 mb-1.5" title="{{ $persenTepatNow ?? 0 }}% dari total mahasiswa">{{ $persenTepatNow ?? 0 }}%</span>
                         </div>
-                        <span class="text-[8px] font-black px-1.5 py-0.5 rounded-md mb-1.5 {{ $trendTepat >= 0 ? 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400' }}">
-                            {{ $trendTepat >= 0 ? '↑' : '↓' }} {{ abs(round($trendTepat, 1)) }}%
+                        <span class="text-[8px] font-black px-1.5 py-0.5 rounded-md mb-1.5 {{ isset($trendTepat) && $trendTepat >= 0 ? 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400' : 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400' }}">
+                            {{ isset($trendTepat) && $trendTepat >= 0 ? '↑' : '↓' }} {{ isset($trendTepat) ? abs(round($trendTepat, 1)) : 0 }}%
                         </span>
                     </div>
                     <p class="text-[8px] text-green-400/70 mt-2 font-bold italic">Klik untuk melihat detail &rarr;</p>
                 </div>
 
-                <div onclick="toggleDetail('gagal')" class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all border-l-4 border-l-red-500 cursor-pointer hover:shadow-md hover:scale-[1.02] hover:bg-red-50/50 dark:hover:bg-red-900/10">
-                    <p class="text-[10px] text-red-500 font-bold uppercase tracking-widest">Tidak Lulus</p>
+                <!-- KARTU: Tidak Lulus -->
+                <div onclick="toggleDetail('gagal')" class="group/card relative bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm transition-all border-l-4 border-l-red-500 cursor-pointer hover:shadow-md hover:scale-[1.02] hover:bg-red-50/50 dark:hover:bg-red-900/10 z-10 hover:z-20">
+                    <div class="flex justify-between items-start">
+                        <p class="text-[10px] text-red-500 font-bold uppercase tracking-widest">Tidak Lulus</p>
+                        <!-- Ikon Info & Tooltip -->
+                        <div class="relative flex items-center justify-center group/tooltip">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 group-hover/tooltip:text-red-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <!-- Tooltip Box -->
+                            <div class="absolute bottom-full right-0 mb-2 w-48 p-2.5 bg-gray-900 text-white text-[9px] font-medium rounded-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all duration-200 shadow-xl leading-relaxed">
+                                Mahasiswa dengan status keluar sistem selain lulus (contoh: Drop Out, Mengundurkan Diri, atau Putus Studi).
+                                <div class="absolute top-full right-1.5 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="flex items-end justify-between mt-1">
                         <div class="flex items-end gap-2">
                             <h3 class="text-3xl font-black text-red-500">{{ number_format($tidakLulus) }}</h3>
-                            <span class="text-[10px] font-black text-red-600 dark:text-red-400 mb-1.5" title="{{ $persenGagalNow }}% dari total mahasiswa">{{ $persenGagalNow }}%</span>
+                            <span class="text-[10px] font-black text-red-600 dark:text-red-400 mb-1.5" title="{{ $persenGagalNow ?? 0 }}% dari total mahasiswa">{{ $persenGagalNow ?? 0 }}%</span>
                         </div>
                     </div>
                     <p class="text-[8px] text-red-400/70 mt-2 font-bold italic">Klik untuk melihat detail &rarr;</p>
                 </div>
+
             </div>
 
             <div id="detailPanel" class="hidden bg-white dark:bg-gray-800 p-6 md:p-8 rounded-[2rem] border border-blue-100 dark:border-blue-900/50 shadow-lg mb-8 transition-all duration-500 relative scroll-mt-6">

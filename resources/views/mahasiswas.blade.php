@@ -16,6 +16,16 @@
         .hide-scrollbar::-webkit-scrollbar {
             display: none;
         }
+        
+        /* Efek hover untuk judul tabel yang bisa di-sort */
+        th.sortable {
+            cursor: pointer;
+            transition: color 0.2s ease-in-out;
+            user-select: none;
+        }
+        th.sortable:hover {
+            color: #3b82f6; /* Warna biru saat di-hover */
+        }
     </style>
 </head>
 
@@ -83,15 +93,16 @@
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left">
+                    <table class="w-full text-left" id="mahasiswaTable">
                         <thead class="bg-gray-50/50 dark:bg-gray-900/40">
                             <tr class="border-b border-gray-100 dark:border-gray-700">
                                 <th class="p-5 text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase">No</th>
-                                <th class="p-5 text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase">Nama Mahasiswa</th>
-                                <th class="p-5 text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase">NIM</th>
-                                <th class="p-5 text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase text-center">Status</th>
-                                <th class="p-5 text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase text-center">Lama Studi</th>
-                                <th class="p-5 text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase text-center">IPK</th>
+                                <!-- Kolom yang bisa di sort -->
+                                <th onclick="sortTable(1)" class="sortable p-5 text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase">Nama Mahasiswa ⇕</th>
+                                <th onclick="sortTable(2)" class="sortable p-5 text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase">NIM ⇕</th>
+                                <th onclick="sortTable(3)" class="sortable p-5 text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase text-center">Status ⇕</th>
+                                <th onclick="sortTable(4)" class="sortable p-5 text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase text-center">Lama Studi ⇕</th>
+                                <th onclick="sortTable(5)" class="sortable p-5 text-[10px] font-black text-gray-400 dark:text-gray-400 uppercase text-center">IPK ⇕</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -162,6 +173,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // LOGIKA DEPENDENT DROPDOWN FAKULTAS -> PRODI
             const prodiData = @json($prodiPerFakultas);
             const PaintFakultas = document.getElementById('fakultas');
             const prodiSelect = document.getElementById('prodi');
@@ -191,6 +203,59 @@
             PaintFakultas.addEventListener('change', updateProdi);
             updateProdi();
         });
+
+        // FUNGSI SORTING TABEL MAHASISWA
+        function sortTable(n) {
+            var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+            table = document.getElementById("mahasiswaTable");
+            switching = true;
+            dir = "asc"; // Arah default dari A ke Z atau Kecil ke Besar
+            
+            while (switching) {
+                switching = false;
+                rows = table.rows;
+                
+                for (i = 1; i < (rows.length - 1); i++) {
+                    shouldSwitch = false;
+                    x = rows[i].getElementsByTagName("TD")[n];
+                    y = rows[i + 1].getElementsByTagName("TD")[n];
+                    
+                    // Lewati proses jika baris kosong / data tidak ditemukan
+                    if(!x || !y) continue; 
+
+                    let valX = x.innerText.toLowerCase().trim();
+                    let valY = y.innerText.toLowerCase().trim();
+                    
+                    // Aturan khusus: Jika kolom ke-4 (Lama Studi) atau 5 (IPK), ubah jadi angka murni
+                    if (n === 4 || n === 5) {
+                        valX = parseFloat(valX.replace(/[^0-9.-]+/g, "")) || 0;
+                        valY = parseFloat(valY.replace(/[^0-9.-]+/g, "")) || 0;
+                    }
+
+                    if (dir === "asc") {
+                        if (valX > valY) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else if (dir === "desc") {
+                        if (valX < valY) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    switchcount++;
+                } else {
+                    if (switchcount === 0 && dir === "asc") {
+                        dir = "desc";
+                        switching = true;
+                    }
+                }
+            }
+        }
     </script>
 </body>
 
